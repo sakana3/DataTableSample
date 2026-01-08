@@ -1,0 +1,9 @@
+/DataTableSample/Library
+/DataTableSample/*.csproj
+/DataTableSample/*.sln
+/DataTableSample/*.user
+/DataTableSample/UserSettings
+/DataTableSample/Temp
+/DataTableSample/Logs
+/DataTableSample/obj
+/DataTableSample/.idea
