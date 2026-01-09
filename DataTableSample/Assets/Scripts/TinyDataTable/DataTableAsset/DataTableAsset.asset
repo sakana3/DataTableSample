@@ -13,16 +13,17 @@ MonoBehaviour:
   m_Name: DataTableAsset
   m_EditorClassIdentifier: Assembly-CSharp::TinyDataTable.DataTableAsset
   _Data:
-    columns:
-    - rid: 1346737010014683279
+    rows:
+    - rid: 1346737014920184059
   references:
     version: 2
     RefIds:
-    - rid: 1346737010014683279
-      type: {class: 'DataTableRawData`1[[TinyDataTable.DataTableHeader, Assembly-CSharp]]', ns: TinyDataTable, asm: Assembly-CSharp}
+    - rid: 1346737014920184059
+      type: {class: 'DataTableRowData`1[[TinyDataTable.DataTable/Header, Assembly-CSharp]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
-        data:
-        - name: 
-          index: 0
-          id: 0
         _name: Header
+        data:
+        - Name: 
+          Index: 0
+          ID: 0
+          Obsolete: 0

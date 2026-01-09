@@ -12,19 +12,14 @@ namespace TinyDataTable
         [SerializeField] private DataTable _Data;
         public DataTable Data => _Data;
 
-        private void Awake()
-        {
-            _Data = new DataTable();
-        }
-
         [ContextMenu("Add")]
-        public void AddRaw()
+        public void AddRow()
         {
-            Data.AddRaw( typeof(int) , "A");
-            Data.AddRaw( typeof(int) , "B");
-            Data.AddRaw( typeof(string) , "C" );
-            Data.AddRaw( typeof(Color)  , "D");
-            Data.AddRaw( typeof(float) , "E", true );
+            Data.AddRow( typeof(int) , "A");
+            Data.AddRow( typeof(int) , "B");
+            Data.AddRow( typeof(string) , "C" );
+            Data.AddRow( typeof(Color)  , "D");
+            Data.AddRow( typeof(float) , "E", true );
             
 #if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Add Raw");

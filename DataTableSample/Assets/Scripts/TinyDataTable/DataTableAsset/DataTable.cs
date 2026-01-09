@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+
+
 
 namespace TinyDataTable
 {
@@ -10,79 +14,102 @@ namespace TinyDataTable
         [Serializable]
         public struct Header
         {
-            public string name;
-            public int index;
-            public int id;
+            public string Name;
+            public int Index;
+            public int ID;
+            public bool Obsolete;
         }
         
-        [SerializeReference] private IDataTableRaw[] columns = default;
+        /// Rows     
+        [SerializeReference] private IDataTableRow[] rows = default;
         
-        public ReadOnlySpan<IDataTableRaw> ColumnsSpan => columns;
+        /// Rows List  
+        private IReadOnlyList<IDataTableRow> Rows => rows;
+        
+        /// RowsSpan       
+        public ReadOnlySpan<IDataTableRow> RowsSpan => rows.AsSpan();
 
-        public Header GetHeader(int index)
-        {
-            return ((DataTableRawData<Header>)columns[index]).data[0];
-        }
+        /// Returns the number of columns in the data table.
+        public int columnSize => rows[0].Size;
+        
+        /// Returns the number of rows in the data table.
+        public int rowSize => rows[0] == null ? 0 : rows[0].Size;
+        
+        /// <summary> get header </summary>
+        public ref Header GetHeader( int column ) => ref ((DataTableRowData<Header>)rows[0]).Data[column];
 
-        /// Represents a table structure capable of holding multiple columns of different types.
-        /// Includes functionality for adding raw data, adding columns, and managing headers.
+        /// Represents a table structure
         public DataTable()
         {
-            columns = new IDataTableRaw[0];
-            AddRaw(typeof(Header), "Header");
-            AddColumn("Invalid");            
-        }
-
+            rows = new IDataTableRow[0];
+            AddRow(typeof(Header), "Header");
+            var header = AddColumnInline();
+            header.Name = "Invalid";
+            header.ID = -1;
+        }        
         
-        public IDataTableRaw AddRaw(Type typeRaw , string rawName , bool isArray = false)
+        /// <summary> Add row </summary>
+        public IDataTableRow AddRow(Type typeRaw , string rawName , bool isArray = false)
         {
-            Array.Resize(ref columns, columns.Length + 1);
-            var newRaw = isArray ? MakeRawArray(typeRaw) : MakeRawData(typeRaw);
-            newRaw.Prepare();
-            newRaw.Name = rawName;
-            columns[^1] = newRaw;
-            newRaw.Resize( columns[0] == null ? 0 : columns[0].Size );
+            Array.Resize(ref rows, rows.Length + 1);
+            var newRow = DataTableRow.MakeRawData(typeRaw,isArray);
+            newRow.Prepare();
+            newRow.Name = rawName;
+            rows[^1] = newRow;
+            newRow.Resize( rows[0] == null ? 0 : rows[0].Size );
             
-            return newRaw;
+            return newRow;
         }
-
-
-        /// Adds a new column to the data table, resizing all existing columns to accommodate the new column.
-        /// <param name="columnName">The name of the new column to be added.</param>
+        
+        /// <summary> Add column </summary>
         public void AddColumn( string columnName )
         {
-            var rawSize = columns == null ? 0 : columns[^1].Size;
-            foreach (var d in columns)
-            {   
-                d.Resize( rawSize + 1 );
-            }
-
-            if (columns[0] is DataTableRawData<Header>)
-            {
-                var header = (DataTableRawData<Header>)columns[0];
-                header.Name = columnName;
-            }
+            var header = AddColumnInline();
+            header.Name = columnName;
+            header.ID = MakeUID();
+            RecalculateColumnIndex();
         }
         
-        private static IDataTableRaw MakeRawData(Type typeArgument)
+        /// <summary> Add column </summary>
+        public ref Header AddColumnInline()
         {
-            return MakeGenericClass(typeof(DataTableRawData<>), typeArgument);
+            var colSize = rows == null ? 0 : rows[0].Size;
+            foreach (var row in rows)
+            {   
+                row.Resize( colSize + 1 );
+            }
+            return ref GetHeader(columnSize - 1);
+        }        
+
+        public string MakeTmpColumnName( string header )
+        {
+            var tmp = $"{header}_{0}";
+            return tmp;
         }
 
-        private static IDataTableRaw MakeRawArray(Type typeArgument)
+        private void RecalculateColumnIndex()
         {
-            Type arrayType = typeof(DataTableArray<>).MakeGenericType(typeArgument);
-            return MakeGenericClass(typeof(DataTableRawData<>), arrayType);
+            var index = 0;
+            foreach (ref var header in ((DataTableRowData<Header>)RowsSpan[0]).Data.AsSpan())
+            {
+                if (header.ID == 0)
+                {
+                    header.ID = MakeUID();
+                }
+                header.Index = index++;
+            }            
         }
-
-        private static IDataTableRaw MakeGenericClass(Type genericDefinition, Type typeArgument)
+        
+        public int MakeUID()
         {
-            // MakeGenericType で 型を生成
-            Type constructedType = genericDefinition.MakeGenericType(typeArgument);
-
-            // インスタンス化 (Activatorを使用)
-            object instance = Activator.CreateInstance(constructedType);
-            return instance as IDataTableRaw;
+            var random = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0,int.MaxValue);
+            var headers = ((DataTableRowData<Header>)RowsSpan[0]).Data;
+            while (random <= 0 && headers.Any(t => t.ID == random))
+            {
+                random = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0,int.MaxValue);
+            }
+            return random;
         }
     }
 }
+
