@@ -14,112 +14,66 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TinyDataTable.DataTableAsset
   data:
     columns:
-    - rid: 1346737039379005500
-    - rid: 1346737039379005501
-    - rid: 1346737039379005502
-    - rid: 1346737039379005503
-    - rid: 1346737039379005504
-    - rid: 1346737039379005505
+    - rid: 1346737051285586005
+    - rid: 1346737051285586006
+    - rid: 1346737051285586007
+    - rid: 1346737051285586008
+    - rid: 1346737051285586009
+    - rid: 1346737051285586010
   references:
     version: 2
     RefIds:
-    - rid: 1346737039379005500
+    - rid: 1346737051285586005
       type: {class: 'DataTableColumnData`1[[TinyDataTable.DataTable/Header, Assembly-CSharp]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
         name: Header
         rowData:
-        - Name: 
+        - Name: Invalid
           Index: 0
-          ID: 0
+          ID: -1
           Obsolete: 0
-        - Name: 
+        - Name: Data_0001
           Index: 0
-          ID: 0
+          ID: 1449878239
           Obsolete: 0
-        - Name: 
+        - Name: Data_0002
           Index: 0
-          ID: 0
+          ID: 2034238023
           Obsolete: 0
-        - Name: 
+        - Name: Data_0003
           Index: 0
-          ID: 0
+          ID: 826580588
           Obsolete: 0
-        - Name: 
-          Index: 0
-          ID: 0
-          Obsolete: 0
-        - Name: 
-          Index: 0
-          ID: 0
-          Obsolete: 0
-        - Name: 
-          Index: 0
-          ID: 0
-          Obsolete: 0
-        - Name: 
-          Index: 0
-          ID: 0
-          Obsolete: 0
-        - Name: 
-          Index: 0
-          ID: 0
-          Obsolete: 0
-        - Name: 
-          Index: 0
-          ID: 0
-          Obsolete: 0
-    - rid: 1346737039379005501
+    - rid: 1346737051285586006
       type: {class: 'DataTableColumnData`1[[System.Int32, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
-        name: A
-        rowData: 00000000000000000000000000000000000000000000000000000000000000000000000000000000
-    - rid: 1346737039379005502
+        name: ABC
+        rowData: 00000000000000000000000000000000
+    - rid: 1346737051285586007
       type: {class: 'DataTableColumnData`1[[System.Int32, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
-        name: B
-        rowData: 00000000000000000000000000000000000000000000000000000000000000000000000000000000
-    - rid: 1346737039379005503
-      type: {class: 'DataTableColumnData`1[[System.String, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
+        name: Data_0001
+        rowData: 00000000000000000000000000000000
+    - rid: 1346737051285586008
+      type: {class: 'DataTableColumnData`1[[testenum, Assembly-CSharp-Editor]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
-        name: C
-        rowData:
-        - 
-        - 
-        - 
-        - 
-        - 
-        - 
-        - 
-        - 
-        - 
-        - 
-    - rid: 1346737039379005504
-      type: {class: 'DataTableColumnData`1[[UnityEngine.Color, UnityEngine.CoreModule]]', ns: TinyDataTable, asm: Assembly-CSharp}
+        name: dsa
+        rowData: 01000000020000000000000000000000
+    - rid: 1346737051285586009
+      type: {class: 'DataTableColumnData`1[[UnityEngine.Vector3, UnityEngine.CoreModule]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
-        name: D
+        name: Ce
         rowData:
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-        - {r: 0, g: 0, b: 0, a: 0}
-    - rid: 1346737039379005505
-      type: {class: 'DataTableColumnData`1[[TinyDataTable.DataTableRowArray`1[[System.Single, mscorlib]], Assembly-CSharp]]', ns: TinyDataTable, asm: Assembly-CSharp}
+        - {x: 0, y: 0, z: 0}
+        - {x: 0, y: 0, z: 0}
+        - {x: 0, y: 0, z: 0}
+        - {x: 0, y: 0, z: 0}
+    - rid: 1346737051285586010
+      type: {class: 'DataTableColumnData`1[[UnityEngine.Rendering.VolumeComponent, Unity.RenderPipelines.Core.Runtime]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
-        name: E
+        name: a
         rowData:
-        - array: []
-        - array: []
-        - array: []
-        - array: []
-        - array: []
-        - array: []
-        - array: []
-        - array: []
-        - array: []
-        - array: []
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}

@@ -16,7 +16,6 @@ namespace TinyDataTable.Editor
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             var root = new VisualElement();
-                
             root.Add( new DataTableGridField(property) );
 
             return root;

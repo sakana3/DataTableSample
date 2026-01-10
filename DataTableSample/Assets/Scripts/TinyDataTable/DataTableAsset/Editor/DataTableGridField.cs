@@ -13,9 +13,10 @@ namespace TinyDataTable.Editor
     {
         private MultiColumnListView multiColumnListView;
         
-        private List<int> itemList = new List<int>();        
+        private List<int> itemList = new List<int>();
+        private List<uint> columnList = new List<uint>();
         
-        public DataTableGridField(SerializedProperty property)
+        public DataTableGridField( SerializedProperty property)
         {
             multiColumnListView = MakeMultiColumnListView(property);
             Add( multiColumnListView );
@@ -36,14 +37,17 @@ namespace TinyDataTable.Editor
                 showBoundCollectionSize = false,
                 showFoldoutHeader = true
             };
+            listView.style.overflow = Overflow.Visible; // 通常はHiddenにしてスクロールバーに任せる
+
 
             listView.columns.resizePreview = true;
             this.TrackSerializedObjectValue(property.serializedObject, (prop) =>
             {
-                if (DataTablePropertyUtil.CheckTableSizeChanged(property,itemList))
+                if (DataTablePropertyUtil.CheckTableSizeChanged(property,itemList,columnList))
                 {
-                    SetupRows(property, listView);
-                    listView.RefreshItems();
+                    this.Clear();
+                    multiColumnListView = MakeMultiColumnListView(property);
+                    Add( multiColumnListView );
                 }
             });
             
@@ -65,7 +69,33 @@ namespace TinyDataTable.Editor
             {
                 DataTablePropertyUtil.MoveRow(property, form,to);
             };
-
+            listView.headerContextMenuPopulateEvent += (evt,clm) =>
+            {
+                // メニュー項目を追加
+                evt.menu.InsertAction(0,"Add Property", (action) =>
+                {
+                    Vector2 mousePos = action.eventInfo.mousePosition;
+    
+                    Rect activatorRect = new Rect(mousePos.x, mousePos.y, 0, 0);
+       
+                    var names = DataTablePropertyUtil.MakeNameList(property);
+                    DataTableAddPropertyPopup.Show(
+                        activatorRect,
+                        names.propNames,
+                        names.idNames,
+                        new List<string>(){"ID","Invalid","ToString","GetHashCode","GetType","Enum"},
+                        (type, name, isArray) => 
+                    {
+                        if (string.IsNullOrEmpty(name) is false)
+                        {
+                            DataTablePropertyUtil.InsertColumn(property, name, type, isArray);
+                            SetupRows(property, listView);
+                            listView.RefreshItems();
+                        }
+                    });
+                });
+            };
+            
             //フッターにサイズ変更フィールドを追加            
             var footer = listView.Q<VisualElement>("unity-list-view__footer");
             if (footer != null)
@@ -110,9 +140,13 @@ namespace TinyDataTable.Editor
         {
             //Make Columns
             var columns = DataTablePropertyUtil.GetColumns(property);
+            columnList = new List<uint>();
             for (int i = 0; i < columns.arraySize; i++)
             {
                 var columProp = columns.GetArrayElementAtIndex(i);
+                
+                columnList.Add( columProp.contentHash);
+                
                 if (columProp.displayName == DataTable.HeaderUniqeName)
                 {
                     var columIndex = MakeIndexColumn(columProp, i);
@@ -122,7 +156,7 @@ namespace TinyDataTable.Editor
                 }
                 else
                 {
-                    var colum = MakeColumn(columProp, i);
+                    var colum = MakePropertyColumn(columProp, i);
                     listView.columns.Add(colum);
                 }
             }
@@ -153,8 +187,8 @@ namespace TinyDataTable.Editor
             var rows = DataTablePropertyUtil.GetRows(property);       
             var colum = new Column()
             {
-                name = "Name",                
-                makeHeader = () => MakeColumHeader("Name"),
+                name = "ID",                
+                makeHeader = () => MakeColumHeader("ID"),
                 makeCell = () => new VisualElement() { },
                 bindCell = (e,i) =>
                 {
@@ -176,7 +210,7 @@ namespace TinyDataTable.Editor
             return colum;                        
         }
 
-        private Column MakeColumn(SerializedProperty property, int index)
+        private Column MakePropertyColumn(SerializedProperty property, int index)
         {
             var rows = DataTablePropertyUtil.GetRows(property);
             
@@ -200,7 +234,8 @@ namespace TinyDataTable.Editor
                 {
                     e.Clear();                        
                 },                
-                stretchable = true
+//                stretchable = true,
+                resizable = true,
             };
             return colum;
         }

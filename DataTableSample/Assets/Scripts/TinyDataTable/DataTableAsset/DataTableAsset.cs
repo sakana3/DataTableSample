@@ -11,26 +11,5 @@ namespace TinyDataTable
     {
         [SerializeField] private DataTable data;
         public DataTable Data => data;
-
-        
-        [ContextMenu("Add")]
-        public void AddRow()
-        {
-            Data.AddColumn( typeof(int) , "A");
-            Data.AddColumn( typeof(int) , "B");
-            Data.AddColumn( typeof(string) , "C" );
-            Data.AddColumn( typeof(Color)  , "D");
-            Data.AddColumn( typeof(float) , "E", true );
-            
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "Add Raw");
-#endif
-        }
-        
-        [ContextMenu("AddColumns")]
-        public void AddColumns()
-        {
-            data.AddRow("Hoge");
-        }
     }
 }
