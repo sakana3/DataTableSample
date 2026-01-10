@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -19,78 +18,80 @@ namespace TinyDataTable
             public int ID;
             public bool Obsolete;
         }
+
+        public static string HeaderUniqeName = "Header";
         
         /// Rows     
-        [SerializeReference] private IDataTableRow[] rows = default;
+        [SerializeReference] private IDataTableColumn[] columns = default;
         
         /// Rows List  
-        private IReadOnlyList<IDataTableRow> Rows => rows;
+        private IReadOnlyList<IDataTableColumn> Columns => columns;
         
         /// RowsSpan       
-        public ReadOnlySpan<IDataTableRow> RowsSpan => rows.AsSpan();
+        public ReadOnlySpan<IDataTableColumn> ColumnsSpan => columns.AsSpan();
 
         /// Returns the number of columns in the data table.
-        public int columnSize => rows[0].Size;
+        public int columnSize => columns[0].RowSize;
         
         /// Returns the number of rows in the data table.
-        public int rowSize => rows[0] == null ? 0 : rows[0].Size;
+        public int rowSize => columns[0] == null ? 0 : columns[0].RowSize;
         
         /// <summary> get header </summary>
-        public ref Header GetHeader( int column ) => ref ((DataTableRowData<Header>)rows[0]).Data[column];
+        public ref Header GetHeader( int column ) => ref ((DataTableColumnData<Header>)columns[0]).RowData[column];
 
         /// Represents a table structure
         public DataTable()
         {
-            rows = new IDataTableRow[0];
-            AddRow(typeof(Header), "Header");
-            var header = AddColumnInline();
+            columns = new IDataTableColumn[0];
+            AddColumn(typeof(Header), HeaderUniqeName);
+            ref var header = ref AddRowInline();
             header.Name = "Invalid";
             header.ID = -1;
         }        
         
-        /// <summary> Add row </summary>
-        public IDataTableRow AddRow(Type typeRaw , string rawName , bool isArray = false)
+        /// <summary> Add column </summary>
+        public IDataTableColumn AddColumn(Type typeRaw , string rawName , bool isArray = false)
         {
-            Array.Resize(ref rows, rows.Length + 1);
-            var newRow = DataTableRow.MakeRawData(typeRaw,isArray);
-            newRow.Prepare();
-            newRow.Name = rawName;
-            rows[^1] = newRow;
-            newRow.Resize( rows[0] == null ? 0 : rows[0].Size );
+            Array.Resize(ref columns, columns.Length + 1);
+            var newColumn = DataTableColumn.MakeColumnData(typeRaw,isArray);
+            newColumn.Prepare();
+            newColumn.Name = rawName;
+            columns[^1] = newColumn;
+            newColumn.Resize( columns[0] == null ? 0 : columns[0].RowSize );
             
-            return newRow;
+            return newColumn;
         }
         
-        /// <summary> Add column </summary>
-        public void AddColumn( string columnName )
+        /// <summary> Add row </summary>
+        public void AddRow( string columnName )
         {
-            var header = AddColumnInline();
+            ref var header = ref AddRowInline();
             header.Name = columnName;
             header.ID = MakeUID();
-            RecalculateColumnIndex();
+            RecalculateRowIndex();
         }
         
         /// <summary> Add column </summary>
-        public ref Header AddColumnInline()
+        public ref Header AddRowInline()
         {
-            var colSize = rows == null ? 0 : rows[0].Size;
-            foreach (var row in rows)
+            var rowSize = columns == null ? 0 : columns[0].RowSize;
+            foreach (var column in columns)
             {   
-                row.Resize( colSize + 1 );
+                column.Resize( rowSize + 1 );
             }
             return ref GetHeader(columnSize - 1);
         }        
 
-        public string MakeTmpColumnName( string header )
+        public string MakeTmpRowName( string header )
         {
             var tmp = $"{header}_{0}";
             return tmp;
         }
 
-        private void RecalculateColumnIndex()
+        private void RecalculateRowIndex()
         {
             var index = 0;
-            foreach (ref var header in ((DataTableRowData<Header>)RowsSpan[0]).Data.AsSpan())
+            foreach (ref var header in ((DataTableColumnData<Header>)ColumnsSpan[0]).RowData.AsSpan())
             {
                 if (header.ID == 0)
                 {
@@ -103,7 +104,7 @@ namespace TinyDataTable
         public int MakeUID()
         {
             var random = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0,int.MaxValue);
-            var headers = ((DataTableRowData<Header>)RowsSpan[0]).Data;
+            var headers = ((DataTableColumnData<Header>)ColumnsSpan[0]).RowData;
             while (random <= 0 && headers.Any(t => t.ID == random))
             {
                 random = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0,int.MaxValue);

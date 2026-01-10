@@ -9,17 +9,18 @@ namespace TinyDataTable
     [CreateAssetMenu(fileName = "DataTableAsset", menuName = "Scriptable Objects/DataTableAsset")]
     public class DataTableAsset : ScriptableObject
     {
-        [SerializeField] private DataTable _Data;
-        public DataTable Data => _Data;
+        [SerializeField] private DataTable data;
+        public DataTable Data => data;
 
+        
         [ContextMenu("Add")]
         public void AddRow()
         {
-            Data.AddRow( typeof(int) , "A");
-            Data.AddRow( typeof(int) , "B");
-            Data.AddRow( typeof(string) , "C" );
-            Data.AddRow( typeof(Color)  , "D");
-            Data.AddRow( typeof(float) , "E", true );
+            Data.AddColumn( typeof(int) , "A");
+            Data.AddColumn( typeof(int) , "B");
+            Data.AddColumn( typeof(string) , "C" );
+            Data.AddColumn( typeof(Color)  , "D");
+            Data.AddColumn( typeof(float) , "E", true );
             
 #if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Add Raw");
@@ -29,7 +30,7 @@ namespace TinyDataTable
         [ContextMenu("AddColumns")]
         public void AddColumns()
         {
-            _Data.AddColumn("Hoge");
+            data.AddRow("Hoge");
         }
     }
 }

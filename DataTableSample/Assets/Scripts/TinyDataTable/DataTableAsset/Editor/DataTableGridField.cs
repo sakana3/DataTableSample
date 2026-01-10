@@ -1,0 +1,218 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
+using TinyDataTable;
+using UnityEditor.UIElements;
+
+namespace TinyDataTable.Editor
+{
+    public class DataTableGridField : VisualElement
+    {
+        private MultiColumnListView multiColumnListView;
+        
+        private List<int> itemList = new List<int>();        
+        
+        public DataTableGridField(SerializedProperty property)
+        {
+            multiColumnListView = MakeMultiColumnListView(property);
+            Add( multiColumnListView );
+        }
+
+        private MultiColumnListView MakeMultiColumnListView(SerializedProperty property)
+        {
+            var listView = new MultiColumnListView()
+            {
+                name = property.displayName,
+                reorderable = true,
+                reorderMode = ListViewReorderMode.Animated,
+                
+                showAddRemoveFooter = true,
+                sortingMode = ColumnSortingMode.None,
+                virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
+                showAlternatingRowBackgrounds = AlternatingRowBackground.All,
+                showBoundCollectionSize = false,
+                showFoldoutHeader = true
+            };
+
+            listView.columns.resizePreview = true;
+            this.TrackSerializedObjectValue(property.serializedObject, (prop) =>
+            {
+                if (DataTablePropertyUtil.CheckTableSizeChanged(property,itemList))
+                {
+                    SetupRows(property, listView);
+                    listView.RefreshItems();
+                }
+            });
+            
+            listView.itemsAdded += (indexes) =>
+            {
+                foreach (var index in indexes)
+                {
+                    DataTablePropertyUtil.InsertRow(property, index);
+                }
+            };
+            listView.itemsRemoved += (indexes) =>
+            {
+                foreach (var index in indexes)
+                {
+                    DataTablePropertyUtil.RemoveRow(property, index);
+                }
+            };
+            listView.itemIndexChanged += (form, to) =>
+            {
+                DataTablePropertyUtil.MoveRow(property, form,to);
+            };
+
+            //フッターにサイズ変更フィールドを追加            
+            var footer = listView.Q<VisualElement>("unity-list-view__footer");
+            if (footer != null)
+            {
+                var TableSizeField = new UnsignedIntegerField()
+                {
+                    value = (uint)DataTablePropertyUtil.GetHeaderRow(property).arraySize,
+                };
+                footer.Add( TableSizeField );
+                TableSizeField.SendToBack();
+                TableSizeField.style.marginRight = 4.0f;
+                TableSizeField.TrackPropertyValue(DataTablePropertyUtil.GetHeaderRow(property) , (t) =>
+                {
+                    TableSizeField.SetValueWithoutNotify( (uint)DataTablePropertyUtil.GetHeaderRow(property).arraySize );
+                });
+                // 編集終了（Enterキー or フォーカス外れ）
+                TableSizeField.RegisterCallback<FocusOutEvent>(evt =>
+                {
+                    DataTablePropertyUtil.ResizeRow(property, TableSizeField.value);
+                });
+            }
+            
+            SetupColumns(property, listView);
+
+            SetupRows(property, listView);
+            
+            return listView;
+        }
+
+        private void SetupRows(SerializedProperty property, MultiColumnListView listView)
+        {
+            var columns = DataTablePropertyUtil.GetColumns(property);  
+            var headerProp = columns.GetArrayElementAtIndex(0);
+            var rowProp = DataTablePropertyUtil.GetRows(headerProp);
+
+            itemList = Enumerable.Range(0, rowProp.arraySize).Select(i => i).ToList();
+
+            listView.itemsSource = itemList;                    
+        }
+
+        private void SetupColumns(SerializedProperty property, MultiColumnListView listView)
+        {
+            //Make Columns
+            var columns = DataTablePropertyUtil.GetColumns(property);
+            for (int i = 0; i < columns.arraySize; i++)
+            {
+                var columProp = columns.GetArrayElementAtIndex(i);
+                if (columProp.displayName == DataTable.HeaderUniqeName)
+                {
+                    var columIndex = MakeIndexColumn(columProp, i);
+                    listView.columns.Add(columIndex);
+                    var columName = MakeNameColumn(columProp, i);
+                    listView.columns.Add(columName);
+                }
+                else
+                {
+                    var colum = MakeColumn(columProp, i);
+                    listView.columns.Add(colum);
+                }
+            }
+        }
+        
+        
+        private Column MakeIndexColumn(SerializedProperty property, int index)
+        {
+            var colum = new Column()
+            {
+                name = "Index",
+                makeHeader = () => MakeColumHeader("Index"),
+                makeCell = () => new Label() { },
+                bindCell = (e,i) =>
+                {
+                    var label = e as Label;
+                    label.text = $"{i}";
+                },
+                stretchable = false,
+                width = 48    ,
+                sortable = false
+            };
+            return colum;            
+        }
+        
+        private Column MakeNameColumn(SerializedProperty property, int index)
+        {
+            var rows = DataTablePropertyUtil.GetRows(property);       
+            var colum = new Column()
+            {
+                name = "Name",                
+                makeHeader = () => MakeColumHeader("Name"),
+                makeCell = () => new VisualElement() { },
+                bindCell = (e,i) =>
+                {
+                    var prop = rows.GetArrayElementAtIndex(i);
+                    var nameProp = prop.FindPropertyRelative("Name");
+                    var propertyField = new PropertyField(nameProp,"");
+                    propertyField.BindProperty(nameProp);
+                    e.Clear();
+                    e.Add(propertyField);
+                },
+                unbindCell = (e,i) =>
+                {
+                    e.Clear();                        
+                },
+                stretchable = false,
+                width = 120
+            };
+    
+            return colum;                        
+        }
+
+        private Column MakeColumn(SerializedProperty property, int index)
+        {
+            var rows = DataTablePropertyUtil.GetRows(property);
+            
+            var colum = new Column()
+            {
+                name = property.displayName,                     
+                makeHeader = () => MakeColumHeader(property.displayName),
+                makeCell = () => new VisualElement() { },
+                bindCell = (e,i) =>
+                {
+                    if (i < rows.arraySize)
+                    {
+                        var prop = rows.GetArrayElementAtIndex(i);
+                        var propertyField = new PropertyField(prop, string.Empty);
+                        propertyField.BindProperty(prop);
+                        e.Clear();
+                        e.Add(propertyField);
+                    }
+                },
+                unbindCell = (e,i) =>
+                {
+                    e.Clear();                        
+                },                
+                stretchable = true
+            };
+            return colum;
+        }
+        
+        private VisualElement MakeColumHeader(string name)
+        {
+            var label = new Label(){ text = name };
+            label.style.unityTextAlign = TextAnchor.MiddleCenter;
+            label.style.paddingTop = 2.0f;
+            label.style.paddingBottom = 2.0f;
+            return label;
+        }        
+    }
+}
+

@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using Object = System.Object;
 
 
 namespace TinyDataTable
 {
-    public interface IDataTableRow
+    public interface IDataTableColumn
     {
         Type Type { get; }
-        int Size { get; }
+        int RowSize { get; }
 
         string Name { set; get; }
 
@@ -19,42 +18,42 @@ namespace TinyDataTable
         
         void Resize(int size);
 
-        IEnumerable<E> GetObjects<E>();
+        IEnumerable<E> GetRowObjects<E>();
         
         bool IsArray => typeof(IDataTableRowArray).IsAssignableFrom(Type);            
     }
 
-    public interface IDataTableRowT<T> : IDataTableRow
+    public interface IDataTableColumnT<T> : IDataTableColumn
     {
-        T[] Data { get; }
+        T[] RowData { get; }
     }
     
     [Serializable]
-    public struct DataTableRowData<T> : IDataTableRowT<T>
+    public struct DataTableColumnData<T> : IDataTableColumnT<T>
     {
         public Type Type => typeof(T);
 
         [SerializeField]
-        private string _name;
-        public string Name { set => _name = value; get => _name; }
+        private string name;
+        public string Name { set => name = value; get => name; }
 
         [SerializeField]
-        private T[] data;
-        public T[] Data => data;
+        private T[] rowData;
+        public T[] RowData => rowData;
 
-        public int Size => data == null ? 0 : data.Length;
+        public int RowSize => rowData == null ? 0 : rowData.Length;
 
         public void Prepare()
         {
-            data = data ?? Array.Empty<T>();
+            rowData = rowData ?? Array.Empty<T>();
         }
         
         public void Resize(int size)
         {
-            Array.Resize(ref data, size);
+            Array.Resize(ref rowData, size);
         }
 
-        public IEnumerable<E> GetObjects<E>() => data.OfType<E>();
+        public IEnumerable<E> GetRowObjects<E>() => rowData.OfType<E>();
     }
 
     public interface IDataTableRowArray
@@ -68,34 +67,34 @@ namespace TinyDataTable
         public T[] array;
     }
     
-    internal static class DataTableRow
+    internal static class DataTableColumn
     {
-        internal static IDataTableRow MakeRawData(Type typeArgument , bool isArray = false)
+        internal static IDataTableColumn MakeColumnData(Type typeArgument , bool isArray = false)
         {
             if (isArray)
             {
-                return MakeGenericClass(typeof(DataTableRowData<>), typeArgument);
+                return MakeColumnArray(typeArgument);
             }
             else
             {
-                return MakeRawArray(typeArgument);
+                return MakeGenericClass(typeof(DataTableColumnData<>), typeArgument);
             }
         }
 
-        internal static IDataTableRow MakeRawArray(Type typeArgument)
+        internal static IDataTableColumn MakeColumnArray(Type typeArgument)
         {
             Type arrayType = typeof(DataTableRowArray<>).MakeGenericType(typeArgument);
-            return MakeGenericClass(typeof(DataTableRowData<>), arrayType);
+            return MakeGenericClass(typeof(DataTableColumnData<>), arrayType);
         }
 
-        internal static IDataTableRow MakeGenericClass(Type genericDefinition, Type typeArgument)
+        internal static IDataTableColumn MakeGenericClass(Type genericDefinition, Type typeArgument)
         {
             // MakeGenericType で 型を生成
             Type constructedType = genericDefinition.MakeGenericType(typeArgument);
 
             // インスタンス化 (Activatorを使用)
             object instance = Activator.CreateInstance(constructedType);
-            return instance as IDataTableRow;
+            return instance as IDataTableColumn;
         }
 
     }    
