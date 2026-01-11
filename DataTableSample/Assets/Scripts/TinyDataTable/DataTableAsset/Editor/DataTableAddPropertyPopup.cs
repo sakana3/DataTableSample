@@ -5,7 +5,6 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using System.CodeDom.Compiler;
 using UnityEditor.IMGUI.Controls;
 
 namespace TinyDataTable.Editor
@@ -13,8 +12,8 @@ namespace TinyDataTable.Editor
     // ポップアップウィンドウのコンテンツ
     public class DataTableAddPropertyPopup : PopupWindowContent
     {
-        private readonly Action<Type, string, bool> _onAdd;
-        private Vector2 _windowSize = new Vector2(250, 200);
+        private readonly Action<Type, string, bool,string> _onAdd;
+        private Vector2 _windowSize = new Vector2(300, 200);
 
         public string PropertyName { set; get; } = "";
         public Type PropertyType { set; get; } = typeof(int);
@@ -50,7 +49,7 @@ namespace TinyDataTable.Editor
 
 
         
-        public DataTableAddPropertyPopup(Action<Type, string, bool> onAdd)
+        public DataTableAddPropertyPopup(Action<Type, string, bool,string> onAdd)
         {
             _onAdd = onAdd;
         }
@@ -125,7 +124,7 @@ namespace TinyDataTable.Editor
             List<string> propNames,
             List<string> idNames,
             List<string> reservNames,
-            Action<Type, string, bool> onAdd)
+            Action<Type, string, bool,string> onAdd)
         {
             var popup = new DataTableAddPropertyPopup(onAdd)
             {
@@ -208,7 +207,7 @@ namespace TinyDataTable.Editor
         
         private void InvokeOnAdd()
         {
-            _onAdd(PropertyType, PropertyName, IsArray);
+            _onAdd(PropertyType, PropertyName, IsArray,Description);
             editorWindow.Close();
         }
     }

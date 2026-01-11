@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using TinyDataTable;
 using UnityEditor.UIElements;
 
 namespace TinyDataTable.Editor
@@ -161,7 +160,7 @@ namespace TinyDataTable.Editor
             var colum = new Column()
             {
                 name = "Index",
-                makeHeader = () => MakeColumHeader(property,"Index",index,false),
+                makeHeader = () => MakeColumHeader(property,"Index",index,false,"Index"),
                 makeCell = () => new Label() { },
                 bindCell = (e,i) =>
                 {
@@ -180,7 +179,7 @@ namespace TinyDataTable.Editor
             var colum = new Column()
             {
                 name = "ID",                
-                makeHeader = () => MakeColumHeader(property,"ID",index,false),
+                makeHeader = () => MakeColumHeader(property,"ID",index,false,"ID"),
                 makeCell = () =>
                 {
                     var e = new TextField() { };
@@ -228,7 +227,8 @@ namespace TinyDataTable.Editor
                 {
                     var columProp = DataTablePropertyUtil.GetColumn(property,index);
                     var isObsolete = columProp.FindPropertyRelative("obsolete").boolValue;
-                    return MakeColumHeader(property, name, index, isObsolete);
+                    var description = columProp.FindPropertyRelative("description").stringValue;
+                    return MakeColumHeader(property, name, index, isObsolete,description);
                 },
                 makeCell = () => new VisualElement() { },
                 bindCell = (e,i) =>
@@ -259,13 +259,19 @@ namespace TinyDataTable.Editor
             return colum;
         }
         
-        private VisualElement MakeColumHeader(SerializedProperty property ,string name , int index,bool isObsolete)
+        private VisualElement MakeColumHeader(
+            SerializedProperty property ,
+            string name ,
+            int index,
+            bool isObsolete,
+            string description)
         {
             var label = new Label(){ text = name };
             label.style.unityTextAlign = TextAnchor.MiddleCenter;
             label.style.paddingTop = 2.0f;
             label.style.paddingBottom = 2.0f;
             label.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();
+            label.tooltip = description;
 
             if (index >= 0)
             {
@@ -368,11 +374,11 @@ namespace TinyDataTable.Editor
                 names.propNames,
                 names.idNames, 
                 DataTablePropertyUtil.ReservWords,
-                (type, name, isArray) => 
+                (type, name, isArray,description) => 
                 {
                     if (string.IsNullOrEmpty(name) is false)
                     {
-                        var newColumnProp = DataTablePropertyUtil.InsertColumn(_targetProperty,index+1, name, type, isArray);
+                        var newColumnProp = DataTablePropertyUtil.InsertColumn(_targetProperty,index+1, name, type, isArray,description);
 
                         var newColumn = MakePropertyColumn(_targetProperty, index + 1);
                         

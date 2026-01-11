@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-
-
 namespace TinyDataTable
 {
     [Serializable]
@@ -17,6 +15,7 @@ namespace TinyDataTable
             public int Index;
             public int ID;
             public bool Obsolete;
+            public string Description;
         }
 
         public static string HeaderUniqeName = "Header";

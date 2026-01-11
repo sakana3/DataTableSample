@@ -14,18 +14,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TinyDataTable.DataTableAsset
   data:
     columns:
-    - rid: 1346737068701909126
+    - rid: 1346737068701909137
+    - rid: 1346737068701909138
   references:
     version: 2
     RefIds:
-    - rid: 1346737068701909126
+    - rid: 1346737068701909137
       type: {class: 'DataTableColumnData`1[[TinyDataTable.DataTable/Header, Assembly-CSharp]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
         name: Header
         obsolete: 0
         id: 0
+        description: 
         rowData:
         - Name: Invalid
           Index: 0
           ID: -1
           Obsolete: 0
+          Description: 
+    - rid: 1346737068701909138
+      type: {class: 'DataTableColumnData`1[[System.Int32, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
+      data:
+        name: A
+        obsolete: 0
+        id: 1141501762
+        description: HOGE
+        rowData: 00000000

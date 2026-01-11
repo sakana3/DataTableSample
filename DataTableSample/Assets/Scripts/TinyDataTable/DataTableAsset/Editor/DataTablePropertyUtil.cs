@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using TinyDataTable;
+
 
 namespace TinyDataTable.Editor
 {
@@ -161,7 +161,9 @@ namespace TinyDataTable.Editor
             int index,
             string name ,
             Type type,
-            bool isArray)
+            bool isArray,
+            string description
+            )
         {
             var columns = property.FindPropertyRelative("columns");
 
@@ -173,6 +175,7 @@ namespace TinyDataTable.Editor
             var dt = MakeColumnData(type , isArray );
             dt.Name = name;
             dt.Obsolete = false;
+            dt.Description = description;
             dt.Resize(GetHeaderRow(property).arraySize);
 
             newColum.managedReferenceValue = dt;

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Object = System.Object;
-
 
 namespace TinyDataTable
 {
@@ -15,6 +13,7 @@ namespace TinyDataTable
         string Name { set; get; }
         public bool Obsolete { set; get; }
         public int ID { set; get; }
+        public string Description{ set; get; }
         
         void Prepare();
         
@@ -46,6 +45,10 @@ namespace TinyDataTable
         [SerializeField]
         private int id;
         public int ID { set => id = value; get => id; }
+
+        [SerializeField]        
+        private string description;
+        public string Description  { set => description = value; get => description; }
         
         [SerializeField]
         private T[] rowData;

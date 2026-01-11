@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.UIElements;
 using UnityEditor.IMGUI.Controls;
-using UnityEngine;
 
 namespace TinyDataTable.Editor
 {
@@ -40,6 +41,7 @@ namespace TinyDataTable.Editor
             typeof(Gradient),
         };
 
+        
         private static string[] Assemblys = new string[]
         {
             "Assembly-CSharp" , "UnityEngine"
@@ -52,6 +54,7 @@ namespace TinyDataTable.Editor
         public TypeSelectorDropdown(AdvancedDropdownState state, IEnumerable<Type> types, Action<Type> onTypeSelected) :
             base(state)
         {
+           
             _types = types;
             _onTypeSelected = onTypeSelected;
 
@@ -146,6 +149,8 @@ namespace TinyDataTable.Editor
         {
             if (item is TypeDropdownItem typeItem)
             {
+                Debug.Log($"Selected Type: {typeItem.Type.Name}");
+                Debug.Log($"Selected Type: {typeItem.Type.Assembly.GetName().Name}");
                 _onTypeSelected?.Invoke(typeItem.Type);
             }
         }
@@ -162,10 +167,10 @@ namespace TinyDataTable.Editor
             }
         }
 
-
         private (Type[] enumTypes,Type[] classTypes,Type[] unityObjectTypes)  CollectTEmumTypes()
         {
             var allTypes  = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(t =>t.GetName().Name.Contains("Editor") is false)
                 .SelectMany(a => a.GetTypes())
                 .Where(t => UIToolkitEditorUtility.CheckUnitySerializable(t))
                 .ToArray();
@@ -181,7 +186,6 @@ namespace TinyDataTable.Editor
                 .ToArray();
 
             var unityObjectTypes = allTypes
-                .Where(t =>t.Assembly.GetName().Name.Contains("Editor") is false)
                 .Where(t => t.IsClass )
                 .Where(t => typeof(UnityEngine.Object).IsAssignableFrom(t))
                 .ToArray();

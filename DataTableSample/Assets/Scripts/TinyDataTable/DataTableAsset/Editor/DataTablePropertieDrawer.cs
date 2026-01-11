@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using TinyDataTable;
 using UnityEditor.UIElements;
 
 
@@ -16,7 +15,10 @@ namespace TinyDataTable.Editor
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             var root = new VisualElement();
-            root.Add( new DataTableGridField(property) );
+            var dataTable = new DataTableGridField(property);
+            dataTable.style.flexGrow = 1.0f;
+            
+            root.Add( dataTable );
 
             return root;
         }
