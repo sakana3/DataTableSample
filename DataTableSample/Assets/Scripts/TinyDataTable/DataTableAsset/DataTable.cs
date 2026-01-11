@@ -24,17 +24,22 @@ namespace TinyDataTable
         [SerializeReference] private IDataTableColumn[] columns = default;
         
         /// Rows List  
-        private IReadOnlyList<IDataTableColumn> Columns => columns;
+        public IReadOnlyList<IDataTableColumn> Columns => columns;
         
         /// RowsSpan       
         public ReadOnlySpan<IDataTableColumn> ColumnsSpan => columns.AsSpan();
 
+        public DataTableColumnData<T> GetColum<T>(int index) => columns.AsSpan()[index] as DataTableColumnData<T>;
+
+        public T GetCell<T>(int iColumn, int iRow) =>
+            ((DataTableColumnData<T>)columns[iColumn]).RowData[iRow];
+
         /// Returns the number of columns in the data table.
         public int columnSize => columns[0].RowSize;
-        
+
         /// Returns the number of rows in the data table.
         public int rowSize => columns[0] == null ? 0 : columns[0].RowSize;
-        
+
         /// <summary> get header </summary>
         public ref Header GetHeader( int row ) => ref ((DataTableColumnData<Header>)columns[0]).RowData[row];
 
@@ -47,7 +52,7 @@ namespace TinyDataTable
             header.Name = "Invalid";
             header.ID = -1;
         }        
-        
+
         /// <summary> Add column </summary>
         public IDataTableColumn AddColumn(Type typeRaw , string rawName , bool isArray = false)
         {

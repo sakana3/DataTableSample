@@ -149,8 +149,6 @@ namespace TinyDataTable.Editor
         {
             if (item is TypeDropdownItem typeItem)
             {
-                Debug.Log($"Selected Type: {typeItem.Type.Name}");
-                Debug.Log($"Selected Type: {typeItem.Type.Assembly.GetName().Name}");
                 _onTypeSelected?.Invoke(typeItem.Type);
             }
         }

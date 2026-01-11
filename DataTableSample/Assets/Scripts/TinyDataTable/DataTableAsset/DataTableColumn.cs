@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = System.Object;
 
 namespace TinyDataTable
 {
@@ -19,7 +20,7 @@ namespace TinyDataTable
         
         void Resize(int size);
 
-        IEnumerable<E> GetRowObjects<E>();
+        IEnumerable<E> RowEnumrator<E>();
         
         bool IsArray => typeof(IDataTableRowArray).IsAssignableFrom(Type);            
     }
@@ -30,7 +31,7 @@ namespace TinyDataTable
     }
     
     [Serializable]
-    public struct DataTableColumnData<T> : IDataTableColumnT<T>
+    public class DataTableColumnData<T> : IDataTableColumnT<T>
     {
         public Type Type => typeof(T);
 
@@ -66,7 +67,7 @@ namespace TinyDataTable
             Array.Resize(ref rowData, size);
         }
 
-        public IEnumerable<E> GetRowObjects<E>() => rowData.OfType<E>();
+        public IEnumerable<E> RowEnumrator<E>() => rowData.OfType<E>();
     }
 
     public interface IDataTableRowArray

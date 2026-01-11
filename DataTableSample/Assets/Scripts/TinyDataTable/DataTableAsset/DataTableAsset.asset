@@ -15,7 +15,7 @@ MonoBehaviour:
   data:
     columns:
     - rid: 1346737068701909137
-    - rid: 1346737068701909138
+    - rid: 1346737068701909139
   references:
     version: 2
     RefIds:
@@ -32,11 +32,66 @@ MonoBehaviour:
           ID: -1
           Obsolete: 0
           Description: 
-    - rid: 1346737068701909138
-      type: {class: 'DataTableColumnData`1[[System.Int32, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
+        - Name: data_0001
+          Index: 0
+          ID: 588168756
+          Obsolete: 0
+          Description: 
+        - Name: data_0002
+          Index: 0
+          ID: 1435482271
+          Obsolete: 0
+          Description: 
+        - Name: data_0003
+          Index: 0
+          ID: 287946584
+          Obsolete: 0
+          Description: 
+        - Name: data_0004
+          Index: 0
+          ID: 2056967163
+          Obsolete: 0
+          Description: 
+        - Name: data_0005
+          Index: 0
+          ID: 1909251197
+          Obsolete: 0
+          Description: 
+        - Name: data_0006
+          Index: 0
+          ID: 1264057609
+          Obsolete: 0
+          Description: 
+        - Name: data_0007
+          Index: 0
+          ID: 1929361426
+          Obsolete: 0
+          Description: 
+        - Name: data_0008
+          Index: 0
+          ID: 1342168866
+          Obsolete: 0
+          Description: 
+        - Name: data_0009
+          Index: 0
+          ID: 371614824
+          Obsolete: 0
+          Description: 
+    - rid: 1346737068701909139
+      type: {class: 'DataTableColumnData`1[[TMPro.TextMeshProUGUI, Unity.TextMeshPro]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
-        name: A
+        name: TMP
         obsolete: 0
-        id: 1141501762
-        description: HOGE
-        rowData: 00000000
+        id: 1582868973
+        description: TMP
+        rowData:
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
