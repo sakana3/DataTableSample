@@ -13,3 +13,4 @@ namespace TinyDataTable
         public DataTable Data => data;
     }
 }
+

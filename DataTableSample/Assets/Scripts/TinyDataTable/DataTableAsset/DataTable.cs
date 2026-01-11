@@ -37,7 +37,7 @@ namespace TinyDataTable
         public int rowSize => columns[0] == null ? 0 : columns[0].RowSize;
         
         /// <summary> get header </summary>
-        public ref Header GetHeader( int column ) => ref ((DataTableColumnData<Header>)columns[0]).RowData[column];
+        public ref Header GetHeader( int row ) => ref ((DataTableColumnData<Header>)columns[0]).RowData[row];
 
         /// Represents a table structure
         public DataTable()

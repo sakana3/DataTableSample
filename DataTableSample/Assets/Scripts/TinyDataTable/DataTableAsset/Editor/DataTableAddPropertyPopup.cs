@@ -18,6 +18,7 @@ namespace TinyDataTable.Editor
 
         public string PropertyName { set; get; } = "";
         public Type PropertyType { set; get; } = typeof(int);
+        public string Description { set; get; } = "";
         public bool IsArray { set; get; } = false;
 
         private UnityEngine.UIElements.TextField _textField;
@@ -47,19 +48,7 @@ namespace TinyDataTable.Editor
             typeof(Sprite),
         };
 
-        // C#の予約語リスト
-        private static readonly HashSet<string> CSharpKeywords = new HashSet<string>
-        {
-            "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
-            "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
-            "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
-            "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
-            "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
-            "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed",
-            "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw",
-            "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using",
-            "virtual", "void", "volatile", "while"
-        };
+
         
         public DataTableAddPropertyPopup(Action<Type, string, bool> onAdd)
         {
@@ -75,14 +64,14 @@ namespace TinyDataTable.Editor
         public override void OnOpen()
         {
             var root = editorWindow.rootVisualElement;
-            root.Add(new Label("Add Property"));
+            root.Add(new Label("Add Field"));
 
             root.Add(new ToolbarSpacer());
             
             // クラス名入力
             var textField = new UnityEngine.UIElements.TextField(PropertyName)
             {
-                label = "Property Name",
+                label = "Field Name",
                 value = PropertyName,
             };
             textField.RegisterValueChangedCallback(evt => OnClassNameChangeCallback(textField,evt));
@@ -108,6 +97,13 @@ namespace TinyDataTable.Editor
             boolField.RegisterValueChangedCallback(evt => IsArray = evt.newValue);
             root.Add( boolField );
 
+            var DescriptionField = new TextField("Description")
+            {
+
+            };
+            DescriptionField.RegisterValueChangedCallback(evt => Description = evt.newValue);
+            root.Add( DescriptionField );
+            
             var spacer = new VisualElement();
             spacer.style.flexGrow = 1;
             root.Add( spacer );
@@ -143,7 +139,7 @@ namespace TinyDataTable.Editor
         private VisualElement MakeTypeSelectorPopup()
         {
             var popup = UIToolkitEditorUtility.CreatePopupButton(PropertyType.Name);
-            var field = UIToolkitEditorUtility.CreateLabeledVisualElement("Property Type",popup.button);
+            var field = UIToolkitEditorUtility.CreateLabeledVisualElement("Field Type",popup.button);
 
             popup.button.clicked += () =>
             {
@@ -176,13 +172,9 @@ namespace TinyDataTable.Editor
             {
                 text = "クラス名を入力してください";
             }
-            else if (CodeGenerator.IsValidLanguageIndependentIdentifier(PropertyName) is false)
+            else if (UIToolkitEditorUtility.CheckCanUseFieldName(PropertyName) is false)
             {
-                text = "C#で利用可能な名前ではありません";
-            }
-            else if (CSharpKeywords.Contains(PropertyName))
-            {
-                text = "C#の予約語です";
+                text = "フィールドで利用可能な名前ではありません";
             }
             else if (propNames.Any( t => t == PropertyName))
             {

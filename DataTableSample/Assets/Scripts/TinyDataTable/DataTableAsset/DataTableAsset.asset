@@ -14,66 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TinyDataTable.DataTableAsset
   data:
     columns:
-    - rid: 1346737051285586005
-    - rid: 1346737051285586006
-    - rid: 1346737051285586007
-    - rid: 1346737051285586008
-    - rid: 1346737051285586009
-    - rid: 1346737051285586010
+    - rid: 1346737068701909126
   references:
     version: 2
     RefIds:
-    - rid: 1346737051285586005
+    - rid: 1346737068701909126
       type: {class: 'DataTableColumnData`1[[TinyDataTable.DataTable/Header, Assembly-CSharp]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
         name: Header
+        obsolete: 0
+        id: 0
         rowData:
         - Name: Invalid
           Index: 0
           ID: -1
           Obsolete: 0
-        - Name: Data_0001
-          Index: 0
-          ID: 1449878239
-          Obsolete: 0
-        - Name: Data_0002
-          Index: 0
-          ID: 2034238023
-          Obsolete: 0
-        - Name: Data_0003
-          Index: 0
-          ID: 826580588
-          Obsolete: 0
-    - rid: 1346737051285586006
-      type: {class: 'DataTableColumnData`1[[System.Int32, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
-      data:
-        name: ABC
-        rowData: 00000000000000000000000000000000
-    - rid: 1346737051285586007
-      type: {class: 'DataTableColumnData`1[[System.Int32, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
-      data:
-        name: Data_0001
-        rowData: 00000000000000000000000000000000
-    - rid: 1346737051285586008
-      type: {class: 'DataTableColumnData`1[[testenum, Assembly-CSharp-Editor]]', ns: TinyDataTable, asm: Assembly-CSharp}
-      data:
-        name: dsa
-        rowData: 01000000020000000000000000000000
-    - rid: 1346737051285586009
-      type: {class: 'DataTableColumnData`1[[UnityEngine.Vector3, UnityEngine.CoreModule]]', ns: TinyDataTable, asm: Assembly-CSharp}
-      data:
-        name: Ce
-        rowData:
-        - {x: 0, y: 0, z: 0}
-        - {x: 0, y: 0, z: 0}
-        - {x: 0, y: 0, z: 0}
-        - {x: 0, y: 0, z: 0}
-    - rid: 1346737051285586010
-      type: {class: 'DataTableColumnData`1[[UnityEngine.Rendering.VolumeComponent, Unity.RenderPipelines.Core.Runtime]]', ns: TinyDataTable, asm: Assembly-CSharp}
-      data:
-        name: a
-        rowData:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}

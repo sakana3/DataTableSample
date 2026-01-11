@@ -13,7 +13,9 @@ namespace TinyDataTable
         int RowSize { get; }
 
         string Name { set; get; }
-
+        public bool Obsolete { set; get; }
+        public int ID { set; get; }
+        
         void Prepare();
         
         void Resize(int size);
@@ -37,6 +39,14 @@ namespace TinyDataTable
         private string name;
         public string Name { set => name = value; get => name; }
 
+        [SerializeField]
+        private bool obsolete;
+        public bool Obsolete { set => obsolete = value; get => obsolete; }
+
+        [SerializeField]
+        private int id;
+        public int ID { set => id = value; get => id; }
+        
         [SerializeField]
         private T[] rowData;
         public T[] RowData => rowData;
