@@ -16,6 +16,7 @@ MonoBehaviour:
     columns:
     - rid: 1346737068701909137
     - rid: 1346737084228698173
+    - rid: 1346737100829229117
   references:
     version: 2
     RefIds:
@@ -101,3 +102,11 @@ MonoBehaviour:
         - h
         - i
         - j
+    - rid: 1346737100829229117
+      type: {class: 'DataTableColumnData`1[[System.Int32, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
+      data:
+        name: Int
+        obsolete: 0
+        id: 695130009
+        description: 
+        rowData: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

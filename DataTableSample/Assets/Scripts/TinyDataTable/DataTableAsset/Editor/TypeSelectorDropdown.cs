@@ -41,12 +41,6 @@ namespace TinyDataTable.Editor
             typeof(Gradient),
         };
 
-        
-        private static string[] Assemblys = new string[]
-        {
-            "Assembly-CSharp" , "UnityEngine"
-        };
-
         private static Type[] _enumTypes = null;
         private static Type[] _classTypes = null;
         private static Type[] _unityObjectTypes = null;
@@ -76,7 +70,7 @@ namespace TinyDataTable.Editor
                 AddTypeItem(root, type, false);
             }
 
-            var typeRoot = new AdvancedDropdownItem("Unity Type");
+            var typeRoot = new AdvancedDropdownItem("Unity Types");
             foreach (var type in builtinTypes)
             {
                 AddTypeItem(typeRoot, type, false);
@@ -84,7 +78,7 @@ namespace TinyDataTable.Editor
 
             root.AddChild(typeRoot);
 
-            var objectRoot = new AdvancedDropdownItem("UnityObject");
+            var objectRoot = new AdvancedDropdownItem("Unity Objects");
             foreach (var type in _unityObjectTypes)
             {
                 AddTypeItem(objectRoot, type, true);
@@ -168,26 +162,25 @@ namespace TinyDataTable.Editor
         private (Type[] enumTypes,Type[] classTypes,Type[] unityObjectTypes)  CollectTEmumTypes()
         {
             var allTypes  = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(t =>t.GetName().Name.Contains("Editor") is false)
+                .Where(t => TinyDataTableSettings.Instance.Assemblies.Contains( t.GetName().Name))
                 .SelectMany(a => a.GetTypes())
+                .Where( t => t.IsPublic )                
                 .Where(t => UIToolkitEditorUtility.CheckUnitySerializable(t))
                 .ToArray();
             
             var enumTypes = allTypes
-                .Where(t => Assemblys.Contains(t.Assembly.GetName().Name) )
                 .Where(t => t.IsEnum && t.IsSerializable)
                 .ToArray();
 
             var classTypes = allTypes
-                .Where(t => Assemblys.Contains(t.Assembly.GetName().Name) )
                 .Where(t => t.IsClass || t.IsValueType || t.IsPrimitive )
+                .Where(t => typeof(UnityEngine.Object).IsAssignableFrom(t) is false)
                 .ToArray();
 
             var unityObjectTypes = allTypes
-                .Where(t => t.IsClass )
                 .Where(t => typeof(UnityEngine.Object).IsAssignableFrom(t))
                 .ToArray();
-            
+
             return (enumTypes,classTypes,unityObjectTypes);
         }
     }
