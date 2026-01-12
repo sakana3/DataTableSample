@@ -54,6 +54,7 @@ namespace TinyDataTable
         [SerializeField]
         private T[] rowData;
         public T[] RowData => rowData;
+        public Span<T> RowDataSpan => rowData.AsSpan();
 
         public int RowSize => rowData == null ? 0 : rowData.Length;
 

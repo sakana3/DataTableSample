@@ -15,7 +15,7 @@ MonoBehaviour:
   data:
     columns:
     - rid: 1346737068701909137
-    - rid: 1346737068701909139
+    - rid: 1346737084228698173
   references:
     version: 2
     RefIds:
@@ -77,21 +77,27 @@ MonoBehaviour:
           ID: 371614824
           Obsolete: 0
           Description: 
-    - rid: 1346737068701909139
-      type: {class: 'DataTableColumnData`1[[TMPro.TextMeshProUGUI, Unity.TextMeshPro]]', ns: TinyDataTable, asm: Assembly-CSharp}
+        - Name: data_0010
+          Index: 0
+          ID: 172914645
+          Obsolete: 0
+          Description: 
+    - rid: 1346737084228698173
+      type: {class: 'DataTableColumnData`1[[System.String, mscorlib]]', ns: TinyDataTable, asm: Assembly-CSharp}
       data:
-        name: TMP
+        name: str
         obsolete: 0
-        id: 1582868973
-        description: TMP
+        id: 1107971913
+        description: hoge
         rowData:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
+        - none
+        - a
+        - b
+        - c
+        - d
+        - e
+        - f
+        - g
+        - h
+        - i
+        - j

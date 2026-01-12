@@ -29,11 +29,27 @@ namespace TinyDataTable
         /// RowsSpan       
         public ReadOnlySpan<IDataTableColumn> ColumnsSpan => columns.AsSpan();
 
-        public DataTableColumnData<T> GetColum<T>(int index) => columns.AsSpan()[index] as DataTableColumnData<T>;
+        /// GetColum       
+        public DataTableColumnData<T> GetColum<T>(int index) => columns[index+1] as DataTableColumnData<T>;
 
-        public T GetCell<T>(int iColumn, int iRow) =>
-            ((DataTableColumnData<T>)columns[iColumn]).RowData[iRow];
+        /// GetColum       
+        public DataTableColumnData<T> GetColum<T>(string fieldName) => columns.FirstOrDefault(t=>t.Name==fieldName) as DataTableColumnData<T>;
+        
+        /// GetCell
+        public T GetCell<T>(int iColumn, int iRow) => GetColum<T>(iColumn).RowData[iRow+1];
 
+        /// GetCell
+        public T GetCell<T>(string fieldName, int iRow ) =>
+            GetColum<T>(fieldName).RowData[iRow];
+
+        /// GetCell
+        public T GetCell<T>(string fieldName, string recordName ) =>
+            GetColum<T>(fieldName).RowData[GetRowIndex(recordName)];
+        
+        /// GetRowIndex
+        public int GetRowIndex(string recordName) =>
+            Array.FindIndex((columns[0] as DataTableColumnData<Header>).RowData,t=>t.Name == recordName);
+        
         /// Returns the number of columns in the data table.
         public int columnSize => columns[0].RowSize;
 
