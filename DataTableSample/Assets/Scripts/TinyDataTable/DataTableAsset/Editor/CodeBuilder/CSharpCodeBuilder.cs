@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.Linq;
+using UnityEngine;
 
 namespace TinyDataTable.Editor
 {
@@ -43,7 +44,7 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// ブロックを開始する {
         /// </summary>
-        public CSharpCodeBuilder BeginBlock(string header = "")
+        public CSharpCodeBuilder.BlackScope BeginBlock(string header = "")
         {
             if (!string.IsNullOrEmpty(header))
             {
@@ -51,7 +52,7 @@ namespace TinyDataTable.Editor
             }
             AppendLine("{");
             _indentLevel++;
-            return this;
+            return new BlackScope( this);
         }
 
         /// <summary>
@@ -85,15 +86,20 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// 名前空間を開始
         /// </summary>
-        public CSharpCodeBuilder BeginNamespace(string namespaceName)
+        public CSharpCodeBuilder.BlackScope BeginNamespace(string namespaceName)
         {
+            if (string.IsNullOrEmpty(namespaceName))
+            {
+                return new BlackScope(this, false);
+            }
+            
             return BeginBlock($"namespace {namespaceName}");
         }
 
         /// <summary>
         /// クラス定義を開始
         /// </summary>
-        public CSharpCodeBuilder BeginClass(string className, string accessModifier = "public", string inherit = null, bool isPartial = false)
+        public CSharpCodeBuilder.BlackScope BeginClass(string className, string accessModifier = "public", string inherit = null, bool isPartial = false)
         {
             var partialStr = isPartial ? "partial " : "";
             var inheritStr = string.IsNullOrEmpty(inherit) ? "" : $" : {inherit}";
@@ -103,7 +109,7 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// クラス定義を開始
         /// </summary>
-        public CSharpCodeBuilder BeginStruct(string className, string accessModifier = "public", string inherit = null, bool isPartial = false)
+        public CSharpCodeBuilder.BlackScope BeginStruct(string className, string accessModifier = "public", string inherit = null, bool isPartial = false)
         {
             var partialStr = isPartial ? "partial " : "";
             var inheritStr = string.IsNullOrEmpty(inherit) ? "" : $" : {inherit}";
@@ -113,7 +119,7 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// 列挙定義を開始
         /// </summary>
-        public CSharpCodeBuilder BeginEnum(string enumName, string accessModifier = "public")
+        public CSharpCodeBuilder.BlackScope BeginEnum(string enumName, string accessModifier = "public")
         {
             return BeginBlock($"{accessModifier} enum {enumName}");
         }        
@@ -121,12 +127,30 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// メソッド定義を開始
         /// </summary>
-        public CSharpCodeBuilder BeginMethod(string returnType, string methodName, string args = "", string accessModifier = "public", bool isStatic = false)
+        public CSharpCodeBuilder.BlackScope BeginMethod(string returnType, string methodName, string args = "", string accessModifier = "public", bool isStatic = false)
         {
             var staticStr = isStatic ? "static " : "";
             return BeginBlock($"{accessModifier} {staticStr}{returnType} {methodName}({args})");
         }
 
+        /// <summary>
+        /// メソッド定義を開始
+        /// </summary>
+        public CSharpCodeBuilder.BlackScope BeginConstructor( string methodName, string args = "", string accessModifier = "public" , string serfix = "")
+        {
+            string _srtfix = string.IsNullOrEmpty(serfix) ? "" : $" : {serfix}";
+            
+            return BeginBlock($"{accessModifier} {methodName}({args}){_srtfix}");
+        }
+        
+        /// <summary>
+        /// 列挙定義を開始
+        /// </summary>
+        public CSharpCodeBuilder.BlackScope BeginIf( string code)
+        {
+            return BeginBlock($"if ({code})");
+        }            
+        
         /// <summary>
         /// プロパティを追加
         /// </summary>
@@ -147,6 +171,15 @@ namespace TinyDataTable.Editor
             return this;
         }
 
+        /// <summary>
+        /// フィールドを追加
+        /// </summary>
+        public CSharpCodeBuilder AddCode( string line)
+        {
+            AppendLine($"{line};");
+            return this;
+        }
+        
         /// <summary>
         /// Enumを追加
         /// </summary>
@@ -207,6 +240,32 @@ namespace TinyDataTable.Editor
         public override string ToString()
         {
             return _sb.ToString();
+        }
+
+        public class BlackScope : IDisposable
+        {
+            private CSharpCodeBuilder builder;
+            private bool enableScope;
+            private string footer;
+            public BlackScope(CSharpCodeBuilder builder , bool enableScope = true)
+            {
+                this.builder = builder;
+                this.enableScope = enableScope;
+            }
+
+            public BlackScope Footer( string footer )
+            {
+                this.footer = footer;
+                return this;
+            }
+            
+            public void Dispose()
+            {
+                if (enableScope)
+                {
+                    builder.EndBlock(footer);
+                }
+            }
         }
     }
 }

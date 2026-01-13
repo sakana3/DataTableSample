@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace TinyDataTable
@@ -9,6 +6,11 @@ namespace TinyDataTable
     [CreateAssetMenu(fileName = "DataTableAsset", menuName = "Scriptable Objects/DataTableAsset")]
     public class DataTableAsset : ScriptableObject
     {
+        //Export Setting
+        [SerializeField] private DataTableSettings settings = new DataTableSettings();
+
+        public ref DataTableSettings Settings => ref settings;
+        
         //Member
         [SerializeField] private DataTable data;
 

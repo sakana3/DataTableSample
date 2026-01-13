@@ -72,8 +72,10 @@ namespace TinyDataTable.Editor
             {
                 label = "Field Name",
                 value = PropertyName,
+                
             };
             textField.RegisterValueChangedCallback(evt => OnClassNameChangeCallback(textField,evt));
+            textField.textEdition.placeholder = "Input field name...";　
             root.Add( textField );
 
             _notifyLabel = new Label("Notify");
@@ -101,6 +103,7 @@ namespace TinyDataTable.Editor
 
             };
             DescriptionField.RegisterValueChangedCallback(evt => Description = evt.newValue);
+            DescriptionField.textEdition.placeholder = "Input Description.If you need.";　
             root.Add( DescriptionField );
             
             var spacer = new VisualElement();

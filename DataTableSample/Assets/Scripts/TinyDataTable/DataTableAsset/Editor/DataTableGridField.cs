@@ -117,9 +117,7 @@ namespace TinyDataTable.Editor
 
         private void SetupRows(SerializedProperty property, MultiColumnListView listView)
         {
-            var columns = DataTablePropertyUtil.GetColumns(property);  
-            var headerProp = columns.GetArrayElementAtIndex(0);
-            var rowProp = DataTablePropertyUtil.GetRows(headerProp);
+            var rowProp = DataTablePropertyUtil.GetHeaderRow(property);
 
             itemList = Enumerable.Range(0, rowProp.arraySize).Select(i => i).ToList();
 
@@ -133,53 +131,61 @@ namespace TinyDataTable.Editor
             idTextFieldList.Clear();
             var columns = DataTablePropertyUtil.GetColumns(property);
             columnList = new List<int>();
+
+            var columIndex = MakeIndexColumn(property);
+            listView.columns.Add(columIndex);
+            var columName = MakeIDNameColumn(property);
+            listView.columns.Add(columName);
             
             for (int i = 0; i < columns.arraySize; i++)
             {
                 var columProp = columns.GetArrayElementAtIndex(i);
                 columnList.Add( columProp.FindPropertyRelative("id").intValue);
-                
-                if (columProp.displayName == DataTable.HeaderUniqeName)
-                {
-                    var columIndex = MakeIndexColumn(property, -1);
-                    listView.columns.Add(columIndex);
-                    var columName = MakeIDNameColumn(property, i);
-                    listView.columns.Add(columName);
-                }
-                else
-                {
-                    var colum = MakePropertyColumn(property, i);
-                    listView.columns.Add(colum);
-                }
+                var colum = MakePropertyColumn(property, i);
+                listView.columns.Add(colum);
             }
         }
         
         
-        private Column MakeIndexColumn(SerializedProperty property, int index)
+        private Column MakeIndexColumn(SerializedProperty property)
         {
             var colum = new Column()
             {
                 name = "Index",
-                makeHeader = () => MakeColumHeader(property,"Index",index,false,"Index"),
-                makeCell = () => new Label() { },
+                makeHeader = () => MakeColumHeader(property,"Index",false,"Index"),
+                makeCell = () => new VisualElement() { },
                 bindCell = (e,i) =>
                 {
-                    var label = e as Label;
-                    label.text = $"{i}";
+                    if (i > 0)
+                    {
+                        var label = new Label();
+                        label.text =$"{i - 1}";
+                        label.style.unityTextAlign = TextAnchor.MiddleCenter;
+                        e.Clear();
+                        e.Add(label);
+                    }
+                    e.parent.style.justifyContent = Justify.Center;
                 },
                 stretchable = false,
-                width = 48    ,
+                resizable = false,
+                width = 40    ,
                 sortable = false
             };
             return colum;            
         }
         
-        private Column MakeIDNameColumn(SerializedProperty property, int index)
+        private Column MakeIDNameColumn(SerializedProperty property)
         {
             var colum = new Column()
             {
                 name = "ID",                
-                makeHeader = () => MakeColumHeader(property,"ID",index,false,"ID"),
+                makeHeader = () =>
+                {
+                    var header = MakeColumHeader(property, "ID",  false, "ID");
+                    var manipulator = MakeMenuManipulator(property,header ,-1);
+                    header.AddManipulator( manipulator);
+                    return header;
+                },
                 makeCell = () =>
                 {
                     var e = new TextField() { };
@@ -190,13 +196,13 @@ namespace TinyDataTable.Editor
                 {
                     if (e is TextField textField)
                     {
-                        var cell = DataTablePropertyUtil.GetCell(property, index, i);
-                        var nameProp = cell.FindPropertyRelative("Name");
+                        var headerProp = DataTablePropertyUtil.GetHeader(property,i);
+                        var nameProp = headerProp.FindPropertyRelative("Name");
                         textField.BindProperty(nameProp);
                         textField.RegisterValueChangedCallback(evt => { ReloadIDText(); });
                         e.userData = nameProp;
                         ReloadIDText(textField);
-                        textField.SetEnabled(cell.FindPropertyRelative("ID").intValue > 0);                        
+                        textField.SetEnabled(headerProp.FindPropertyRelative("ID").intValue > 0);                        
                     }
                 },
                 unbindCell = (e,i) =>
@@ -228,7 +234,10 @@ namespace TinyDataTable.Editor
                     var columProp = DataTablePropertyUtil.GetColumn(property,index);
                     var isObsolete = columProp.FindPropertyRelative("obsolete").boolValue;
                     var description = columProp.FindPropertyRelative("description").stringValue;
-                    return MakeColumHeader(property, name, index, isObsolete,description);
+                    var header = MakeColumHeader(property, name, isObsolete,description) as Label;
+                    var manipulator = MakeMenuManipulator(property,header ,index);
+                    header.AddManipulator( manipulator);
+                    return header;
                 },
                 makeCell = () => new VisualElement() { },
                 bindCell = (e,i) =>
@@ -262,7 +271,6 @@ namespace TinyDataTable.Editor
         private VisualElement MakeColumHeader(
             SerializedProperty property ,
             string name ,
-            int index,
             bool isObsolete,
             string description)
         {
@@ -273,59 +281,58 @@ namespace TinyDataTable.Editor
             label.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();
             label.tooltip = description;
 
-            if (index >= 0)
-            {
-                var columProp = DataTablePropertyUtil.GetColumn(property,index);
-                var obsoleteProp = columProp.FindPropertyRelative("obsolete");
-                
-                var manipulator = new ContextualMenuManipulator((evt) =>
-                {
-                    // メニュー項目を追加
-                    evt.menu.AppendAction("Add Field", (action) => OpenProp(index,action.eventInfo.mousePosition));
-                    if (index > 0)
-                    {
-                        evt.menu.AppendAction(
-                            "Obsolete Field",
-                            (action) =>
-                            {
-                                var obsoleteProp = columProp.FindPropertyRelative("obsolete");
-                                obsoleteProp.boolValue = !obsoleteProp.boolValue;
-                                columProp.serializedObject.ApplyModifiedProperties();
-                                label.style.backgroundColor = obsoleteProp.boolValue?_obsoleteColor:new StyleColor();
-                                multiColumnListView.RefreshItems();
-                            },
-                            (action) =>
-                            {
-                                var obsolete = columProp.FindPropertyRelative("obsolete").boolValue;
-                                return obsolete ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal;
-                            });
-                        evt.menu.AppendAction(
-                            obsoleteProp.boolValue?"Remove Field":"Remove Field(Obsolete first)",
-                            (action) =>
-                            {
-                                bool result = EditorUtility.DisplayDialog(
-                                    "Confirmation", // Title
-                                    $"Deleting this field<{columProp.displayName}> could result in breaking changes. Do you want to continue?", // Message
-                                    "Yes", // OK button text
-                                    "No" // Cancel button text
-                                );
-                                if (result)
-                                {
-                                    DataTablePropertyUtil.RemoveColumn(_targetProperty, index);
-                                }
-                            },
-                            (action) =>
-                            {
-                                var obsolete = columProp.FindPropertyRelative("obsolete").boolValue;
-                                return obsolete ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled;
-                            });
-                        evt.menu.AppendSeparator();
-                    }
-                });
-                label.AddManipulator(manipulator);
-            }
-            
             return label;
+        }
+
+        private ContextualMenuManipulator MakeMenuManipulator(SerializedProperty property,VisualElement element,int index)
+        {
+            
+            var manipulator = new ContextualMenuManipulator((evt) =>
+            {
+                // メニュー項目を追加
+                evt.menu.AppendAction("Add Field", (action) => OpenProp(index,action.eventInfo.mousePosition));
+                if (index > 0)
+                {
+                    var columProp = DataTablePropertyUtil.GetColumn(property,index);
+                    var obsoleteProp = columProp.FindPropertyRelative("obsolete");
+                    evt.menu.AppendAction(
+                        "Obsolete Field",
+                        (action) =>
+                        {
+                            obsoleteProp.boolValue = !obsoleteProp.boolValue;
+                            columProp.serializedObject.ApplyModifiedProperties();
+                            element.style.backgroundColor = obsoleteProp.boolValue?_obsoleteColor:new StyleColor();
+                            multiColumnListView.RefreshItems();
+                        },
+                        (action) =>
+                        {
+                            var obsolete = columProp.FindPropertyRelative("obsolete").boolValue;
+                            return obsolete ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal;
+                        });
+                    evt.menu.AppendAction(
+                        obsoleteProp.boolValue?"Remove Field":"Remove Field(Obsolete first)",
+                        (action) =>
+                        {
+                            bool result = EditorUtility.DisplayDialog(
+                                "Confirmation", // Title
+                                $"Deleting this field<{columProp.displayName}> could result in breaking changes. Do you want to continue?", // Message
+                                "Yes", // OK button text
+                                "No" // Cancel button text
+                            );
+                            if (result)
+                            {
+                                DataTablePropertyUtil.RemoveColumn(_targetProperty, index);
+                            }
+                        },
+                        (action) =>
+                        {
+                            var obsolete = columProp.FindPropertyRelative("obsolete").boolValue;
+                            return obsolete ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled;
+                        });
+                    evt.menu.AppendSeparator();
+                }
+            });  
+            return manipulator;
         }
 
         private void ReloadIDText( TextField textField )
@@ -381,8 +388,7 @@ namespace TinyDataTable.Editor
                         var newColumnProp = DataTablePropertyUtil.InsertColumn(_targetProperty,index+1, name, type, isArray,description);
 
                         var newColumn = MakePropertyColumn(_targetProperty, index + 1);
-                        
-                        multiColumnListView.columns.Insert( index + 2 , newColumn );
+                        multiColumnListView.columns.Insert( index + 3 , newColumn );
                     }
                 });
         }

@@ -40,20 +40,28 @@ namespace TinyDataTable.Editor
 
         public static SerializedProperty GetHeader(SerializedProperty property)
         {
-            var columns = GetColumns(property);
-            var header = columns.GetArrayElementAtIndex(0);
-            return header;
+            var headerPop = property.FindPropertyRelative("header");
+            return headerPop;
         }
-
+        
         public static SerializedProperty GetHeaderRow(SerializedProperty property)
         {
-            var header = GetHeader(property);
-            var rows = GetRows(header);
-            return rows;
+            return property.FindPropertyRelative("header.rowData");
         }
 
+        public static SerializedProperty GetHeader(SerializedProperty property , int rowIndex )
+        {
+            var rowProp = property.FindPropertyRelative("header.rowData");
+            var headerProp = rowProp.GetArrayElementAtIndex(rowIndex);
+            return headerProp;
+        }
+        
         public static void InsertRow(SerializedProperty property,string recordName, int index = -1)
         {
+            var headerRowPop = property.FindPropertyRelative("header.rowData");
+            headerRowPop.InsertArrayElementAtIndex(index >= 0 ? index : headerRowPop.arraySize);
+            InitializeHeader2(property, recordName, index >= 0 ? index : headerRowPop.arraySize);   
+            
             var columns = property.FindPropertyRelative("columns");
             for (int col = 0; col < columns.arraySize; col++)
             {
@@ -61,18 +69,17 @@ namespace TinyDataTable.Editor
                 var rowProp = columProp.FindPropertyRelative("rowData");
                 var newIndex = index >= 0 ? index : rowProp.arraySize;
                 rowProp.InsertArrayElementAtIndex(newIndex);
-                if (col == 0)
-                {
-                    InitializeHeader(property,recordName, newIndex);
-                }
             }
 
             property.serializedObject.ApplyModifiedProperties();
-            //       property.serializedObject.Update();
+            property.serializedObject.Update();
         }
 
         public static void RemoveRow(SerializedProperty property, int index = -1)
         {
+            var headerRowPop = property.FindPropertyRelative("header.rowData");            
+            headerRowPop.DeleteArrayElementAtIndex(index >= 0 ? index : headerRowPop.arraySize);
+            
             var columns = property.FindPropertyRelative("columns");
             for (int col = 0; col < columns.arraySize; col++)
             {
@@ -82,7 +89,7 @@ namespace TinyDataTable.Editor
             }
 
             property.serializedObject.ApplyModifiedProperties();
-//        property.serializedObject.Update();
+            property.serializedObject.Update();
         }
 
         public static void ResizeRow(SerializedProperty property,string recordName, uint newSize)
@@ -101,24 +108,18 @@ namespace TinyDataTable.Editor
                     else
                     {
                         rowProp.InsertArrayElementAtIndex(rowProp.arraySize);
-                        if (col == 0)
-                        {
-                            InitializeHeader(property,recordName, rowProp.arraySize - 1);
-                        }
                     }
                 }
             }
 
-
             property.serializedObject.ApplyModifiedProperties();
-//        property.serializedObject.Update();
+            property.serializedObject.Update();
         }
 
-        private static void InitializeHeader(SerializedProperty property,string recordName, int rowIndex)
+
+        private static void InitializeHeader2(SerializedProperty property,string recordName, int rowIndex)
         {
-            var columns = property.FindPropertyRelative("columns");
-            var columProp = columns.GetArrayElementAtIndex(0);
-            var rowProp = columProp.FindPropertyRelative("rowData");
+            var rowProp = property.FindPropertyRelative("header.rowData");
             var headerProp = rowProp.GetArrayElementAtIndex(rowIndex);
             var headerProps = Enumerable.Range(0, rowProp.arraySize)
                 .Select(i => rowProp.GetArrayElementAtIndex(i));
@@ -141,7 +142,8 @@ namespace TinyDataTable.Editor
             idProp.intValue = 0;
             idProp.intValue = MakeNewID(property);
         }
-
+        
+        
         public static void MoveRow(SerializedProperty property, int from, int to)
         {
             var columns = property.FindPropertyRelative("columns");
@@ -153,7 +155,7 @@ namespace TinyDataTable.Editor
             }
 
             property.serializedObject.ApplyModifiedProperties();
-//        property.serializedObject.Update();
+            property.serializedObject.Update();
         }
 
         internal static SerializedProperty InsertColumn(
@@ -183,7 +185,7 @@ namespace TinyDataTable.Editor
             newColum.FindPropertyRelative("id").intValue = MakeNewID(property);
 
             property.serializedObject.ApplyModifiedProperties();
-
+            property.serializedObject.Update();
             return newColum;
         }
 
@@ -192,6 +194,7 @@ namespace TinyDataTable.Editor
             var columns = property.FindPropertyRelative("columns");
             columns.DeleteArrayElementAtIndex(index);
             property.serializedObject.ApplyModifiedProperties();
+            property.serializedObject.Update();
         }
 
         internal static IDataTableColumn MakeColumnData(Type typeArgument, bool isArray = false)
@@ -221,8 +224,6 @@ namespace TinyDataTable.Editor
             object instance = Activator.CreateInstance(constructedType);
             return instance as IDataTableColumn;
         }
-
-        
         
         public static ( List<string> propNames, List<string> idNames ) MakeNameList(SerializedProperty property)
         {
@@ -233,9 +234,8 @@ namespace TinyDataTable.Editor
                 .Select(prop => prop.stringValue)
                 .ToList();
 
-            var rows = columns
-                .GetArrayElementAtIndex(0)
-                .FindPropertyRelative("rowData");
+            var rows = property
+                .FindPropertyRelative("header.rowData");
             var idNames = Enumerable.Range(0, rows.arraySize)
                 .Select(i => rows.GetArrayElementAtIndex(i))
                 .Select(row => row.FindPropertyRelative("Name"))
@@ -259,9 +259,8 @@ namespace TinyDataTable.Editor
                 return false;
             }
 
-            var rows = columns
-                .GetArrayElementAtIndex(0)
-                .FindPropertyRelative("rowData");
+            var rows = property
+                .FindPropertyRelative("header.rowData");
             var idNames = Enumerable.Range(0, rows.arraySize)
                 .Select(i => rows.GetArrayElementAtIndex(i))
                 .Select(row => row.FindPropertyRelative("Name"))
@@ -283,9 +282,7 @@ namespace TinyDataTable.Editor
         /// <returns></returns>
         private static int MakeNewID(SerializedProperty property)
         {
-            var columns = property.FindPropertyRelative("columns");
-            var columProp = columns.GetArrayElementAtIndex(0);
-            var rowProp = columProp.FindPropertyRelative("rowData");
+            var rowProp = property.FindPropertyRelative("header.rowData");
             var headerProps = Enumerable.Range(0, rowProp.arraySize)
                 .Select(i => rowProp.GetArrayElementAtIndex(i));
 
@@ -297,6 +294,7 @@ namespace TinyDataTable.Editor
                 idCandidates = System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, int.MaxValue);
             }
 
+            var columns = property.FindPropertyRelative("columns");
             var colEnumtaror = Enumerable
                 .Range(0, columns.arraySize)
                 .Select(i => columns.GetArrayElementAtIndex(i).FindPropertyRelative("id"));
@@ -321,10 +319,17 @@ namespace TinyDataTable.Editor
                 return true;
             }
 
+            
             return false;
         }
 
         public static List<string> ReservWords = new List<string>()
-            { "ID", "Invalid", "ToString", "GetHashCode", "GetType", "Enum" };        
+        {
+            "ToString", "GetHashCode", "GetType","Equals",
+            "Invalid","IsValid","Prepare","Terminate","EnumToIndex","Enum","Index",
+            "ValidEnumList","ValidIDList",
+            "_dataTable","_assetPath","_value","_index","_validEnums","_validIDs",
+//            "Size"
+        };        
     }
 }

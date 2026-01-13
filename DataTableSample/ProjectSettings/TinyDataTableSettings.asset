@@ -19,3 +19,4 @@ MonoBehaviour:
   - Assembly-CSharp
   - UnityEngine
   - UnityEngine.CoreModule
+  - UnityEngine.JSONSerializeModule

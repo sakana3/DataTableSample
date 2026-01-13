@@ -14,7 +14,7 @@ namespace TinyDataTable.Editor
         [SerializeField] private Color headerColor = Color.gray;
         [SerializeField] private bool enableAutoSave = true;
         [SerializeField] private string defaultNamespace = "ID";
-        [SerializeField] private string[] assemblies = new string[]
+        [SerializeField] private string[] assemblies = new []
         {
             "Assembly-CSharp", "UnityEngine", "UnityEngine.CoreModule"
         };

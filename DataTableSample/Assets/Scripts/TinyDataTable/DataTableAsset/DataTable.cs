@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace TinyDataTable
 {
@@ -9,7 +11,7 @@ namespace TinyDataTable
     public class DataTable
     {
         [Serializable]
-        public struct Header
+        public struct HeaderData
         {
             public string Name;
             public int Index;
@@ -18,7 +20,18 @@ namespace TinyDataTable
             public string Description;
         }
 
-        public static string HeaderUniqeName = "Header";
+        [Serializable]
+        public class DataTableColumnHeader : DataTableColumnData<HeaderData>
+        {
+            
+        }
+
+//        public static string HeaderUniqeName = "Header";
+
+        /// Rows     
+        [SerializeField] private DataTableColumnHeader header;
+
+        public DataTableColumnHeader Header => header;
         
         /// Rows     
         [SerializeReference] private IDataTableColumn[] columns = default;
@@ -30,47 +43,49 @@ namespace TinyDataTable
         public ReadOnlySpan<IDataTableColumn> ColumnsSpan => columns.AsSpan();
 
         /// GetColum       
-        public DataTableColumnData<T> GetColum<T>(int index) => columns[index+1] as DataTableColumnData<T>;
+        public DataTableColumnData<T> GetColum<T>(int index) => columns[index] as DataTableColumnData<T>;
 
         /// GetColum       
         public DataTableColumnData<T> GetColum<T>(string fieldName) => columns.FirstOrDefault(t=>t.Name==fieldName) as DataTableColumnData<T>;
         
         /// GetCell
-        public T GetCell<T>(int iColumn, int iRow) => GetColum<T>(iColumn).RowData[iRow+1];
-
+        public T GetCell<T>(int iColumn, int iRow) => (columns[iColumn] as DataTableColumnData<T>).RowData[iRow];
+        
         /// GetCell
         public T GetCell<T>(string fieldName, int iRow ) => GetColum<T>(fieldName).RowData[iRow];
 
         /// GetCell
         public T GetCell<T>(string fieldName, string recordName ) =>
             GetColum<T>(fieldName).RowData[GetRowIndex(recordName)];
-        
+
         /// GetRowIndex
         public int GetRowIndex(string recordName) =>
-            Array.FindIndex((columns[0] as DataTableColumnData<Header>).RowData,t=>t.Name == recordName);
+            Array.FindIndex(Header.RowData,t=>t.Name == recordName);
 
         /// GetRowIndex
         public int GetRowIndexByID(int ID) =>
-            Array.FindIndex((columns[0] as DataTableColumnData<Header>).RowData,t=>t.ID == ID);
+            Array.FindIndex(Header.RowData,t=>t.ID == ID);
         
         /// Returns the number of columns in the data table.
-        public int ColumnSize => columns[0].RowSize;
+        public int ColumnSize => columns.Length;
 
         /// Returns the number of rows in the data table.
-        public int RowSize => columns[0] == null ? 0 : columns[0].RowSize;
-
-        /// <summary> get header </summary>
-        public ref Header GetHeader( int row ) => ref ((DataTableColumnData<Header>)columns[0]).RowData[row];
+        public int RowSize => Header.RowSize;
 
         /// Represents a table structure
         public DataTable()
         {
-            columns = new IDataTableColumn[0];
-            AddColumn(typeof(Header), HeaderUniqeName);
-            ref var header = ref AddRowInline();
-            header.Name = "Invalid";
-            header.ID = -1;
-        }        
+            this.header = new DataTableColumnHeader();
+            this.header.Prepare();
+            this.header.Name = "Header";
+            this.header.ID = -1;
+            this.header.Resize(1);
+            this.header.RowData[0].Index = 0;
+            this.header.RowData[0].Name = "Invalid";
+            this.header.RowData[0].ID = -1;
+            
+            columns = Array.Empty<IDataTableColumn>();
+        }
 
         /// <summary> Add column </summary>
         public IDataTableColumn AddColumn(Type typeRaw , string rawName , bool isArray = false)
@@ -95,15 +110,16 @@ namespace TinyDataTable
         }
         
         /// <summary> Add column </summary>
-        public ref Header AddRowInline()
+        private ref HeaderData AddRowInline()
         {
-            var rowSize = columns == null ? 0 : columns[0].RowSize;
+            var rowSize = columns == null ? 0 : header.RowSize;
             foreach (var column in columns)
             {   
                 column.Resize( rowSize + 1 );
             }
-            return ref GetHeader(ColumnSize - 1);
-        }        
+            header.Resize( rowSize + 1);
+            return ref header.RowData[rowSize];
+        }
 
         public string MakeTmpRowName( string header )
         {
@@ -114,7 +130,7 @@ namespace TinyDataTable
         private void RecalculateRowIndex()
         {
             var index = 0;
-            foreach (ref var header in ((DataTableColumnData<Header>)ColumnsSpan[0]).RowData.AsSpan())
+            foreach (ref var header in ((DataTableColumnData<HeaderData>)ColumnsSpan[0]).RowData.AsSpan())
             {
                 if (header.ID == 0)
                 {
@@ -127,7 +143,7 @@ namespace TinyDataTable
         public int MakeUID()
         {
             var random = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0,int.MaxValue);
-            var headers = ((DataTableColumnData<Header>)ColumnsSpan[0]).RowData;
+            var headers = ((DataTableColumnData<HeaderData>)ColumnsSpan[0]).RowData;
             while (random <= 0 && headers.Any(t => t.ID == random))
             {
                 random = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0,int.MaxValue);
