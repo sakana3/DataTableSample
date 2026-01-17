@@ -19,20 +19,38 @@ namespace TinyDataTable.Editor
         private const string ScriptFilePath = "TinyDataTableScript_FilePath";        
         private const string AssetFilePath = "TinyDataTableAsset_FilePath";        
 
-        public static void SaveScript(
+        public static bool SaveScript(
             DataTableAsset dataTableAsset ,
-            string tmpClassName ,
-            string tmpNamespace,
-            string filePath )
+            string newClassName ,
+            string newNamespace,
+            string scriptOutputPath )
         {
             var scriptName = String.Empty;
             var fullPath = String.Empty;
             var namespaceName = string.Empty;
-            var assetpath = AssetDatabase.GetAssetPath(dataTableAsset);
+            string assetpath = null;
             string address = null;
-            if (dataTableAsset.Settings.classScript != null)
+            
+            var resourcePath = GetResourcePath(dataTableAsset);
+            if (resourcePath != null)
             {
-                var script = dataTableAsset.Settings.classScript;
+                //リソースフォルダ以下に配置されているなら
+                assetpath = resourcePath;
+            }
+            else
+            {
+                address = GetAddressFromObject(dataTableAsset);
+            }            
+
+            if (string.IsNullOrEmpty(assetpath) && string.IsNullOrEmpty(address))
+            {
+                return false;
+            }            
+            
+            //未インポートだった場合、新規名をつける
+            if (dataTableAsset.ClassScript != null)
+            {
+                var script = dataTableAsset.ClassScript;
                 scriptName = script.GetClass().Name;
                 namespaceName = script.GetClass().Namespace;
                 fullPath = AssetDatabase.GetAssetPath(script);
@@ -40,20 +58,18 @@ namespace TinyDataTable.Editor
             }
             else
             {
-                scriptName = tmpClassName;
-                namespaceName = tmpNamespace;
-                var fileName = "{className}.cs";
-                fullPath = Path.Combine(filePath, fileName);
-                address = GetAddressFromObject(dataTableAsset);                
+                var fileName = $"{newClassName}.cs";
+                fullPath = Path.Combine(scriptOutputPath, fileName);
+                scriptName = newClassName;
+                namespaceName = newNamespace;
             }
-
-//            Debug.Log($"Exporting {assetpath} -> {fullPath} {scriptName} {namespaceName} {address}");
 
             var text = TinyDataTable.Editor.ExportDataTableToCSharp.Export(
                 dataTableAsset,
                 scriptName,
                 namespaceName,
-                address ?? assetpath
+                assetpath,
+                address
                 );
 
             SaveScript(fullPath, text);
@@ -64,7 +80,7 @@ namespace TinyDataTable.Editor
             // セッションにデータを保存
             SessionState.SetBool(KeyIsGenerating, true);
             SessionState.SetString(ScriptFilePath, fullPath);
-            SessionState.SetString(AssetFilePath, assetpath);
+            SessionState.SetString(AssetFilePath, AssetDatabase.GetAssetPath(dataTableAsset));
             //コンパイラーが走ってないなら直接呼び出す
             if (EditorApplication.isCompiling is false)
             {
@@ -74,6 +90,8 @@ namespace TinyDataTable.Editor
             {
                 CompilationPipeline.assemblyCompilationFinished += OnCompilationFinished;                
             }
+
+            return true;
         }
 
         private static void OnCompilationFinished(string assemblyPath, UnityEditor.Compilation.CompilerMessage[] messages)
@@ -102,8 +120,8 @@ namespace TinyDataTable.Editor
             DataTableAsset asset = AssetDatabase.LoadAssetAtPath<DataTableAsset>(assetPath);
             if (script != null && asset != null)
             {
-                asset.Settings.classScript = script;
-                asset.Settings.classType = script.GetClass().FullName;
+                asset.ClassScript = script;
+                asset.ClassType = script.GetClass().FullName;
                 var serializedObject =  new SerializedObject(asset);
                 
                 EditorUtility.SetDirty(asset);
@@ -111,9 +129,16 @@ namespace TinyDataTable.Editor
             }
             else
             {
-                Debug.LogError("Failed to load asset.");
+                if (script == null)
+                {
+                    Debug.LogError($"Failed to load script. {scriptPath} {script}");
+                }
+                if (asset == null)
+                {
+                    Debug.LogError($"Failed to load asset.  {assetPath} {asset}");
+                }
             }
-        }        
+        }
         
         private static string GetAddressFromObject(UnityEngine.Object obj)
         {
@@ -180,16 +205,16 @@ namespace TinyDataTable.Editor
             {
                 CreateFolderRecursively(filePath);
             }
-
+            
             // ファイル書き込み
             File.WriteAllText(fullPath, content);
-
         }
 
         // フォルダを再帰的に作成するヘルパー
         private static void CreateFolderRecursively(string path)
         {
             if (AssetDatabase.IsValidFolder(path)) return;
+
 
             string parent = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(parent) && !AssetDatabase.IsValidFolder(parent))
@@ -199,8 +224,7 @@ namespace TinyDataTable.Editor
 
             string parentFolder = Path.GetDirectoryName(path);
             string newFolder = Path.GetFileName(path);
-    
-            AssetDatabase.CreateFolder(parentFolder, newFolder);
+            var t = AssetDatabase.CreateFolder(parentFolder, newFolder);
         }        
     }
 }

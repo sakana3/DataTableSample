@@ -168,27 +168,26 @@ namespace TinyDataTable.Editor
 
         private void CheckClassName()
         {
-
             string text = string.Empty;
             if (string.IsNullOrEmpty(PropertyName))
             {
-                text = "クラス名を入力してください";
+                text = "Enter field name.";
             }
             else if (UIToolkitEditorUtility.CheckCanUseFieldName(PropertyName) is false)
             {
-                text = "フィールドで利用可能な名前ではありません";
+                text = "Invalid field name.";
             }
             else if (propNames.Any( t => t == PropertyName))
             {
-                text = "その名前は既プロパティに使われています";
+                text = "Name already exists.";
             }
             else if (idNames.Any( t => t == PropertyName))
             {
-                text = "その名前は既にID使われています";
+                text = "Name already exists.";
             }
             else if (reservNames.Any( t => t == PropertyName))
             {
-                text = "予約語です";
+                text = "Reserved word.";
             }
 
             if ( string.IsNullOrEmpty(text) is false)

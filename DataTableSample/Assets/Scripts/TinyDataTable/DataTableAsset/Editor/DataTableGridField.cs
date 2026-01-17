@@ -20,9 +20,8 @@ namespace TinyDataTable.Editor
         public string Name { private set; get; }
         
         private Color _obsoleteColor = new Color( Color.darkViolet.r,Color.darkViolet.g,Color.darkViolet.b , 0.25f );
-
         
-        public DataTableGridField( string name , SerializedProperty property)
+        public DataTableGridField( SerializedProperty property,string name)
         {
             Name = name;
             _targetProperty = property;
@@ -30,7 +29,7 @@ namespace TinyDataTable.Editor
             Add( multiColumnListView );
         }
 
-        public DataTableGridField( SerializedProperty property) : this(property.name,property)
+        public DataTableGridField( SerializedProperty property) : this(property,property.name)
         {
         }
         

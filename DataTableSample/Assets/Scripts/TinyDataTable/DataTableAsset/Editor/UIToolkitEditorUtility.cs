@@ -9,6 +9,11 @@ namespace TinyDataTable.Editor
 {
     public class UIToolkitEditorUtility
     {
+        public static (VisualElement container, Label label) CreateLabeledVisualElement(VisualElement element)
+        {
+            return CreateLabeledVisualElement(element.name, element);
+        }
+
         /// <summary>
         /// Field風のレイアウトに配置する
         /// </summary>

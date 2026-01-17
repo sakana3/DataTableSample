@@ -43,18 +43,24 @@ namespace TinyDataTable.Editor
                 container.style.marginLeft = 10;                
                 
                 // プロパティフィールドの作成
-                var headerColorField = new PropertyField(_serializedSettings.FindProperty("headerColor"));
-//                headerColorField.RegisterValueChangeCallback(evt => SaveSettings());
-                headerColorField.Bind(_serializedSettings);
-//                container.Add(headerColorField);                
                 
-                var autoSaveField = new PropertyField(_serializedSettings.FindProperty("enableAutoSave"));
-//                autoSaveField.RegisterValueChangeCallback(evt => SaveSettings());
-                autoSaveField.Bind(_serializedSettings);
-//                container.Add(autoSaveField);
+                var defaultAssetPathField = new PropertyField(_serializedSettings.FindProperty("defaultAssetPath"));
+                defaultAssetPathField.RegisterValueChangeCallback(evt => SaveSettings());
+                defaultAssetPathField.Bind(_serializedSettings);
+                container.Add(defaultAssetPathField);
+
+                var defaultResourcePathField = new PropertyField(_serializedSettings.FindProperty("defaultResourcePath"));
+                defaultResourcePathField.RegisterValueChangeCallback(evt => SaveSettings());
+                defaultResourcePathField.Bind(_serializedSettings);
+                container.Add(defaultResourcePathField);
+
+                var defaultScriptPathField = new PropertyField(_serializedSettings.FindProperty("defaultScriptPath"));
+                defaultScriptPathField.RegisterValueChangeCallback(evt => SaveSettings());
+                defaultScriptPathField.Bind(_serializedSettings);
+                container.Add(defaultScriptPathField);
                 
                 var defaultNamespaceField = new PropertyField(_serializedSettings.FindProperty("defaultNamespace"));
-//                defaultNamespaceField.RegisterValueChangeCallback(evt => SaveSettings());
+                defaultNamespaceField.RegisterValueChangeCallback(evt => SaveSettings());
                 defaultNamespaceField.Bind(_serializedSettings);
                 container.Add(defaultNamespaceField);
                 
@@ -73,6 +79,7 @@ namespace TinyDataTable.Editor
                             popup.RegisterValueChangedCallback((evt) =>
                                 {
                                     assembliesProp.GetArrayElementAtIndex(i).stringValue = evt.newValue;
+                                    SaveSettings();
                                 }
                             );
                             popup.Bind(_serializedSettings);
@@ -85,11 +92,15 @@ namespace TinyDataTable.Editor
                     showAddRemoveFooter = true,
                 };
                 assembliesList.bindingPath = "assemblies";
+                assembliesList.itemsAdded += _ => SaveSettings();
+                assembliesList.itemsChosen += _ => SaveSettings();
+                assembliesList.itemIndexChanged += (_,_) => SaveSettings();
                 assembliesList.Bind(_serializedSettings);
                 container.Add(assembliesList);
                 
                 var tagsProp = _serializedSettings.FindProperty("tags");
                 var tagField = new PropertyField(tagsProp);
+                tagField.RegisterValueChangeCallback(evt => SaveSettings());
                 tagField.Bind(_serializedSettings);
                 container.Add(tagField);
 

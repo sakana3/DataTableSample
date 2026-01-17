@@ -6,6 +6,7 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 
 namespace TinyDataTable.Editor
 {
@@ -17,30 +18,94 @@ namespace TinyDataTable.Editor
             var root = new VisualElement();
 
             var scriptProp = serializedObject.FindProperty("m_Script");
-
+            var dataTableAsset = serializedObject.targetObject as DataTableAsset;
 /*
             var scriptField = new PropertyField(scriptProp);
             scriptField.SetEnabled(false);
             root.Add(scriptField);
 */
-            var exportButton = new Button()
-            {
-                text = "Export",
-            };
-            exportButton.clicked += () =>
-            {
-                serializedObject.Update();
-                var dataTableAsset = serializedObject.targetObject as DataTableAsset;
-                if (dataTableAsset != null)
-                {
-                    SaveDataTable.SaveScript(
-                        dataTableAsset,dataTableAsset.Settings.className,
-                        dataTableAsset.Settings.namespaceName,
-                        "Assets/TinyDataTable/Script");
-                }
-            };
-            root.Add(exportButton);
 
+
+            //クラス情報
+            if (dataTableAsset.ClassScript == null)
+            {
+                string path = AssetDatabase.GetAssetPath(serializedObject.targetObject);
+                string fileName = Path.GetFileName(path); // "MyData.asset"
+                string fileNameNoExt = Path.GetFileNameWithoutExtension(path); // "MyData"
+                var classNameField = new TextField()
+                {
+                    value = fileNameNoExt,
+                };
+                var className = UIToolkitEditorUtility.CreateLabeledVisualElement("Class Name", classNameField);
+
+                var namespaceField = new TextField()
+                {
+                    value = TinyDataTableSettings.Instance.DefaultNamespace,
+                };
+                var namespaceName = UIToolkitEditorUtility.CreateLabeledVisualElement("NameSpace", namespaceField);
+                
+                //Exportボタン
+                var exportButton = new Button()
+                {
+                    text = CheckNeedEnsureAddressable(dataTableAsset)? "Ensure Addressable" :"Create ID",
+                };
+                exportButton.clicked += () =>
+                {
+                    serializedObject.Update();
+                    if (CheckNeedEnsureAddressable(dataTableAsset))
+                    {
+                        EnsureAddressable(dataTableAsset);
+                        exportButton.text = "Create ID";
+                    }
+                    else
+                    {
+                        if (dataTableAsset != null)
+                        {
+                            SaveDataTable.SaveScript(
+                                dataTableAsset,
+                                classNameField.value,
+                                namespaceField.value,
+                                TinyDataTableSettings.Instance.DefaultScriptPath);
+                        }
+                    }
+                };
+                root.Add(exportButton);
+
+                root.Add(namespaceName.container);
+                root.Add(className.container);
+            }
+            else
+            {
+                //Exportボタン
+                var exportButton = new Button()
+                {
+                    text = "Export",
+                };
+                exportButton.clicked += () =>
+                {
+                    serializedObject.Update();
+
+                    if (dataTableAsset != null)
+                    {
+                        SaveDataTable.SaveScript(
+                            dataTableAsset,
+                            string.Empty,
+                            string.Empty,
+                            "Assets/TinyDataTable/Script");
+                    }
+                };
+                root.Add(exportButton);
+                
+                var typeNameField = new PropertyField(serializedObject.FindProperty("classType"));
+                typeNameField.SetEnabled(false);
+                root.Add(typeNameField);
+                
+                var classField = new PropertyField(serializedObject.FindProperty("classScript"));
+                classField.SetEnabled(false);
+                root.Add(classField);
+            }
+
+            /*
             var exportSettingProp = serializedObject.FindProperty("settings");
             if (exportSettingProp != null)
             {
@@ -50,7 +115,7 @@ namespace TinyDataTable.Editor
                 propertyField.style.marginTop = 10;
                 root.Add(propertyField);
             }
-
+*/
             // Tagフィールド
             root.Add(new Label("Tags"));            
             var tagField = MakeTagField();
@@ -61,11 +126,12 @@ namespace TinyDataTable.Editor
             if (dataProp != null)
             {
                 // カスタムグリッドフィールドを表示
-                var gridField = new DataTableGridField(dataProp);
+                var gridField = new DataTableGridField(dataProp,"record");
                 gridField.style.flexGrow = 1;
                 gridField.style.marginTop = 10;
                 root.Add(gridField);
             }
+
             
             return root;
         }
@@ -110,13 +176,14 @@ namespace TinyDataTable.Editor
 
             void MakeTages(VisualElement baseField)
             {
+                serializedObject.Update();
                 var target = serializedObject.targetObject as DataTableAsset;
                 var tags = TinyDataTableSettings.Instance.Tags
-                    .Concat(target.Tags)
                     .Where(t => string.IsNullOrEmpty(t) is false &&
                                 t.Contains("\"") is false &&
                                 t.Contains("\\") is false &&
                                 t.Contains("'") is false )
+                    .Concat(target.Tags)
                     .Distinct()
                     .ToArray();
 
@@ -233,5 +300,55 @@ namespace TinyDataTable.Editor
             
             return tagField;
         }
+
+        public static bool CheckNeedEnsureAddressable(UnityEngine.Object asset)
+        {
+            if (asset == null) return false;
+
+            //Resources以下にあるならは登録しない
+            string assetPath = AssetDatabase.GetAssetPath(asset);
+            if (assetPath.Contains("/Resources/"))
+            {
+                return false;
+            }
+            
+            var settings = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null) return false;
+
+            string path = AssetDatabase.GetAssetPath(asset);
+            string guid = AssetDatabase.AssetPathToGUID(path);
+
+            // エントリを検索
+            var entry = settings.FindAssetEntry(guid);            
+            
+            return entry == null;
+        }
+
+
+        public static void EnsureAddressable(UnityEngine.Object asset)
+        {
+           if (asset == null) return;
+
+            var settings = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null) return;
+
+            string path = AssetDatabase.GetAssetPath(asset);
+            string guid = AssetDatabase.AssetPathToGUID(path);
+
+            // エントリを検索
+            var entry = settings.FindAssetEntry(guid);
+
+            // まだ登録されていなければ登録
+            if (entry == null)
+            {
+                // デフォルトグループに登録
+                entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
+            
+                // アドレスを設定
+                entry.SetAddress(path);
+            
+                EditorUtility.SetDirty(settings);
+            }
+        }        
     }
 }

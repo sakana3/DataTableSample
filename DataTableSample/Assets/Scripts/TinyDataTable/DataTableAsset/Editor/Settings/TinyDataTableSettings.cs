@@ -11,8 +11,9 @@ namespace TinyDataTable.Editor
         // 保存先のパス (ProjectSettingsフォルダ内)
         private const string SettingsPath = "ProjectSettings/TinyDataTableSettings.asset";
 
-        [SerializeField] private Color headerColor = Color.gray;
-        [SerializeField] private bool enableAutoSave = true;
+        [SerializeField] private string defaultAssetPath = "Assets/TinyDataTable";
+        [SerializeField] private string defaultResourcePath = "TinyDataTable";
+        [SerializeField] private string defaultScriptPath = "Assets/Scripts/TinyDataTable";
         [SerializeField] private string defaultNamespace = "ID";
         [SerializeField] private string[] assemblies = new []
         {
@@ -23,8 +24,9 @@ namespace TinyDataTable.Editor
             "PreLoad", "PreLoadEditor"
         };
 
-        public Color HeaderColor => headerColor;
-        public bool EnableAutoSave => enableAutoSave;
+        public string DefaultAssetPath => defaultAssetPath;
+        public string DefaultResourcePath => defaultResourcePath;
+        public string DefaultScriptPath => defaultScriptPath;
         public string DefaultNamespace => defaultNamespace;
         public string[] Assemblies => assemblies;
         public string[] Tags => tags;

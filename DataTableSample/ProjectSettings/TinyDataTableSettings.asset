@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 598866688a5e98a4daf92058e377ef20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-Editor::TinyDataTable.Editor.TinyDataTableSettings
+  defaultAssetPath: Assets/TinyDataTable
+  defaultResourcePath: TinyDataTable
+  defaultScriptPath: Assets/Scripts/TinyDataTableAutoGen
   defaultNamespace: ID
   assemblies:
   - Assembly-CSharp
@@ -31,4 +34,6 @@ MonoBehaviour:
   - Enemy
   - \Tag
   - \No
-  - '"""""'
+  - FF
+  - FFFFFF
+  - lkjkh

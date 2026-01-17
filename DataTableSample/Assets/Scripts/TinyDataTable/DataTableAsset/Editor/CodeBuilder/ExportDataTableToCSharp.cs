@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ID;
 using TinyDataTable;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ namespace TinyDataTable.Editor
 {
     public static class ExportDataTableToCSharp
     {
-        public static string Export( DataTableAsset asset ,string className,string namespaceName , string assetPath )
+        public static string Export( DataTableAsset asset ,string className,string namespaceName , string resourcePath , string addressName )
         {
             var data = asset.Data;
             CSharpCodeBuilder cb = new CSharpCodeBuilder();
@@ -44,8 +43,9 @@ namespace TinyDataTable.Editor
                     //プライベートメンバー
                     cb.AddComment("Private member");
                     cb.AddField("DataTableAsset" , "_dataTable" , "private static");
-                    var assetPathStr =
-                        string.IsNullOrEmpty(assetPath) ? "string.Empty" : $"\"{assetPath}\"";
+                    var assetPathStr = "null";
+                    if(string.IsNullOrEmpty(addressName) is false) assetPathStr = $"\"{addressName}\"";
+                    if(string.IsNullOrEmpty(resourcePath) is false) assetPathStr = $"\"{resourcePath}\"";
                     cb.AddField("string" , $"_assetPath = {assetPathStr}" , "private const");
                     cb.AppendLine();
                     
@@ -64,33 +64,57 @@ namespace TinyDataTable.Editor
                         cb.AddCode("this._value = value");
                         cb.AddCode("this._index = index");                        
                     }
-                    cb.AppendLine();                    
+                    cb.AppendLine();
                     cb.AddComment("Constructor");
                     using (cb.BeginConstructor(className, "Enum value",
                                "public" , "this(value, EnumToIndex(value))"))
                     {
                     }
-                    cb.AppendLine();                    
+                    cb.AppendLine();
                     cb.AddComment("Constructor");
                     using (cb.BeginConstructor(className, $"{className} value",
                                "public" , "this(value._value, value._index)"))
                     {
                     }                    
                     cb.AppendLine();
-                    
-                    cb.AddComment("Prepare");                    
-                    using ( cb.BeginMethod("void", "Prepare" , "" , "public static") )
+
+                    if (string.IsNullOrEmpty(addressName) is false)
                     {
-                        if (string.IsNullOrEmpty(assetPath) is false)
+                        cb.AddComment("Prepare(Addressables)");
+                        using (cb.BeginMethod("void", "Prepare", "", "public static"))
                         {
-                            using (cb.BeginIf("_dataTable is null"))
+                            if (string.IsNullOrEmpty(addressName) is false)
                             {
-                                cb.AddCode("var op = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<DataTableAsset>(_assetPath)");
-                                cb.AddCode("DataTableAsset prefab = op.WaitForCompletion()");
-                                cb.AddCode("_dataTable = prefab");
+                                using (cb.BeginIf("_dataTable is null"))
+                                {
+                                    cb.AddCode(
+                                        "var op = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<DataTableAsset>(_assetPath)");
+                                    cb.AddCode("DataTableAsset prefab = op.WaitForCompletion()");
+                                    cb.AddCode("_dataTable = prefab");
+                                }
                             }
                         }
                     }
+                    else if (string.IsNullOrEmpty(resourcePath) is false)
+                    {
+                        cb.AddComment("Prepare(Resources)");
+                        using (cb.BeginMethod("void", "Prepare", "", "public static"))
+                        {
+                            using (cb.BeginIf("_dataTable is null"))
+                            {
+                                cb.AddCode($"var prefab = UnityEngine.Resources.Load<DataTableAsset>(_assetPath)");
+                                cb.AddCode("_dataTable = prefab");
+                            }
+                        }                        
+                    }
+                    else
+                    {
+                        cb.AddComment("Prepare");
+                        using (cb.BeginMethod("void", "Prepare", "", "public static"))
+                        {
+                        }
+                    }
+
                     cb.AddComment("Terminate");
                     using (cb.BeginMethod("void", "Terminate", "", "public static"))
                     {
@@ -182,31 +206,48 @@ namespace TinyDataTable.Editor
                     
                     //静的テーブル
                     cb.AddComment("static id table");
-                    using (cb.BeginBlock($"private static {className}[] _validIDs = new[]").Footer(";"))
+                    var validIDs = data.Header.RowData
+                        .Select((row, idx) => (row, idx))
+                        .Where( t => t.idx > 0);
+                    if (validIDs.Any())
                     {
-                        foreach (var val in data.Header.RowData.Select((row,idx)=>(row,idx)))
+                        using (cb.BeginBlock($"private static {className}[] _validIDs = new[]").Footer(";"))
                         {
-                            if (val.row.ID > 0)
+
+                            foreach (var val in validIDs)
                             {
                                 cb.AppendLine($"{className}.{val.row.Name},");
                             }
                         }
                     }
+                    else
+                    {
+                        cb.AddCode(($"private static {className}[] _validIDs = Array.Empty<{className}>()"));
+                    }
+
                     cb.AppendLine();                    
                     cb.AddComment("static enum table");
-                    using (cb.BeginBlock($"private static {className}.Enum[] _validEnums = new[]").Footer(";"))
+                    var validEnums = data.Header.RowData
+                        .Where(t => t.ID > 0 );
+                    if (validEnums.Any())
                     {
-                        foreach (var row in data.Header.RowData)
+                        using (cb.BeginBlock($"private static {className}.Enum[] _validEnums = new[]").Footer(";"))
                         {
-                            if (row.ID > 0)
+                            foreach (var row in validEnums)
                             {
                                 cb.AppendLine($"Enum.{row.Name},");
                             }
                         }
                     }
+                    else
+                    {
+                        cb.AddCode(($"private static {className}.Enum[] _validEnums = Array.Empty<{className}.Enum>()"));
+                    }
+
                     cb.AppendLine();
                     //EnumをIndexに変換するメソッド（静的にテーブル展開されるので高速）
                     cb.AddComment("Enum to index");
+                    
                     using (cb.BeginBlock("private static int EnumToIndex(Enum value) => value switch").Footer(";"))
                     {
                         foreach (var val in data.Header.RowData.Select((row,idx)=>(row,idx)))

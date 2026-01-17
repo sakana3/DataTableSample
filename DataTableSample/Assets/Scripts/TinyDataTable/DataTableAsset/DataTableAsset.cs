@@ -3,19 +3,35 @@ using UnityEngine;
 
 namespace TinyDataTable
 {
-    [CreateAssetMenu(fileName = "DataTableAsset", menuName = "Scriptable Objects/DataTableAsset")]
+    [CreateAssetMenu(fileName = "NewDataTable", menuName = "TinyDataTable/NewDataTable")]
     public class DataTableAsset : ScriptableObject
     {
-        //Export Setting
-        [SerializeField] private DataTableSettings settings = new DataTableSettings();
+        [SerializeField]
+        private string classType;
 
-        public ref DataTableSettings Settings => ref settings;
+        public string ClassType
+        {
+            get => classType;
+            set => classType = value;
+        }
         
-        [SerializeField] private string[] tags;
+#if UNITY_EDITOR        
+        [SerializeField]
+        private UnityEditor.MonoScript classScript;
+        
+        public UnityEditor.MonoScript ClassScript
+        {
+            get => classScript;
+            set => classScript = value;
+        }
+#endif
+        //Tags
+        [SerializeField] private string[] tags = Array.Empty<string>();
 
+        //Tags
         public string[] Tags => tags;
         
-        //Member
+        //Data
         [SerializeField] private DataTable data;
 
         /// GetData
