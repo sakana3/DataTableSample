@@ -11,6 +11,10 @@ namespace TinyDataTable
 
         public ref DataTableSettings Settings => ref settings;
         
+        [SerializeField] private string[] tags;
+
+        public string[] Tags => tags;
+        
         //Member
         [SerializeField] private DataTable data;
 

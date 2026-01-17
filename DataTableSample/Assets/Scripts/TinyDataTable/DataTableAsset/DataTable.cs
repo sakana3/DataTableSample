@@ -78,11 +78,11 @@ namespace TinyDataTable
             this.header = new DataTableColumnHeader();
             this.header.Prepare();
             this.header.Name = "Header";
-            this.header.ID = -1;
+            this.header.ID = 0;
             this.header.Resize(1);
             this.header.RowData[0].Index = 0;
             this.header.RowData[0].Name = "Invalid";
-            this.header.RowData[0].ID = -1;
+            this.header.RowData[0].ID = 0;
             
             columns = Array.Empty<IDataTableColumn>();
         }

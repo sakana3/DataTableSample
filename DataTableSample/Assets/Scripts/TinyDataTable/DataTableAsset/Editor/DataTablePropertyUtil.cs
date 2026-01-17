@@ -44,9 +44,12 @@ namespace TinyDataTable.Editor
             return headerPop;
         }
         
-        public static SerializedProperty GetHeaderRow(SerializedProperty property)
+        public static SerializedProperty GetHeaderObsolete(SerializedProperty property , int rowIndex )
         {
-            return property.FindPropertyRelative("header.rowData");
+            var rowProp = property.FindPropertyRelative("header.rowData");
+            var headerProp = rowProp.GetArrayElementAtIndex(rowIndex);
+            var ObsoleteProp = headerProp.FindPropertyRelative("Obsolete");
+            return ObsoleteProp;
         }
 
         public static SerializedProperty GetHeader(SerializedProperty property , int rowIndex )
@@ -55,6 +58,12 @@ namespace TinyDataTable.Editor
             var headerProp = rowProp.GetArrayElementAtIndex(rowIndex);
             return headerProp;
         }
+        
+        public static SerializedProperty GetHeaderRow(SerializedProperty property)
+        {
+            return property.FindPropertyRelative("header.rowData");
+        }
+
         
         public static void InsertRow(SerializedProperty property,string recordName, int index = -1)
         {

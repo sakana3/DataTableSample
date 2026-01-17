@@ -12,9 +12,9 @@ namespace TinyDataTable
         int RowSize { get; }
 
         string Name { set; get; }
-        public bool Obsolete { set; get; }
-        public int ID { set; get; }
-        public string Description{ set; get; }
+        bool Obsolete { set; get; }
+        int ID { set; get; }
+        string Description{ set; get; }
         
         void Prepare();
         

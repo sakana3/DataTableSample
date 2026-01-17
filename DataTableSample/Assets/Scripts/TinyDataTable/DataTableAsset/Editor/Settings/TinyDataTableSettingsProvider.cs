@@ -39,12 +39,26 @@ namespace TinyDataTable.Editor
 
             if (_serializedSettings != null && _serializedSettings.targetObject != null)
             {
+                var container = new VisualElement();
+                container.style.marginLeft = 10;                
+                
                 // プロパティフィールドの作成
                 var headerColorField = new PropertyField(_serializedSettings.FindProperty("headerColor"));
+//                headerColorField.RegisterValueChangeCallback(evt => SaveSettings());
+                headerColorField.Bind(_serializedSettings);
+//                container.Add(headerColorField);                
+                
                 var autoSaveField = new PropertyField(_serializedSettings.FindProperty("enableAutoSave"));
+//                autoSaveField.RegisterValueChangeCallback(evt => SaveSettings());
+                autoSaveField.Bind(_serializedSettings);
+//                container.Add(autoSaveField);
+                
                 var defaultNamespaceField = new PropertyField(_serializedSettings.FindProperty("defaultNamespace"));
+//                defaultNamespaceField.RegisterValueChangeCallback(evt => SaveSettings());
+                defaultNamespaceField.Bind(_serializedSettings);
+                container.Add(defaultNamespaceField);
+                
                 var assembliesProp = _serializedSettings.FindProperty("assemblies");
-
                 var allTypes = System.AppDomain.CurrentDomain.GetAssemblies()
                     .Select(e => e.GetName().Name)
                     .ToList();
@@ -59,11 +73,11 @@ namespace TinyDataTable.Editor
                             popup.RegisterValueChangedCallback((evt) =>
                                 {
                                     assembliesProp.GetArrayElementAtIndex(i).stringValue = evt.newValue;
-                                    SaveSettings();
                                 }
                             );
                             popup.Bind(_serializedSettings);
                         }
+                        
                     },
                     showFoldoutHeader = true,
                     headerTitle = "Assemblies",
@@ -71,27 +85,15 @@ namespace TinyDataTable.Editor
                     showAddRemoveFooter = true,
                 };
                 assembliesList.bindingPath = "assemblies";
-
-                // 変更検知と保存
-                // PropertyFieldはバインドされているので値は自動更新されるが、
-                // ファイルへの書き出し(Save)は明示的に行う必要がある
-                headerColorField.RegisterValueChangeCallback(evt => SaveSettings());
-                autoSaveField.RegisterValueChangeCallback(evt => SaveSettings());
-                defaultNamespaceField.RegisterValueChangeCallback(evt => SaveSettings());
-
-                // バインド
-                headerColorField.Bind(_serializedSettings);
-                autoSaveField.Bind(_serializedSettings);
-                defaultNamespaceField.Bind(_serializedSettings);
                 assembliesList.Bind(_serializedSettings);
-
-                // UIに追加
-                var container = new VisualElement();
-                container.style.marginLeft = 10;
-//                container.Add(headerColorField);
-//                container.Add(autoSaveField);
-                container.Add(defaultNamespaceField);
                 container.Add(assembliesList);
+                
+                var tagsProp = _serializedSettings.FindProperty("tags");
+                var tagField = new PropertyField(tagsProp);
+                tagField.Bind(_serializedSettings);
+                container.Add(tagField);
+
+                container.TrackSerializedObjectValue(_serializedSettings, (prop) => { SaveSettings(); });
                 
                 rootElement.Add(container);
             }

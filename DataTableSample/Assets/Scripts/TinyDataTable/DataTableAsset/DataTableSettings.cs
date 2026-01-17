@@ -25,7 +25,7 @@ namespace TinyDataTable
 
         [SerializeField]
         public string namespaceName;
-        
+
         [SerializeField]
         public string classType;
 

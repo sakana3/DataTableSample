@@ -18,11 +18,16 @@ namespace TinyDataTable.Editor
         {
             "Assembly-CSharp", "UnityEngine", "UnityEngine.CoreModule"
         };
+        [SerializeField] private string[] tags = new []
+        {
+            "PreLoad", "PreLoadEditor"
+        };
 
         public Color HeaderColor => headerColor;
         public bool EnableAutoSave => enableAutoSave;
         public string DefaultNamespace => defaultNamespace;
         public string[] Assemblies => assemblies;
+        public string[] Tags => tags;
 
         private static TinyDataTableSettings _instance;
 

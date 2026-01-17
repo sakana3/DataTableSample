@@ -4,6 +4,8 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.IO;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace TinyDataTable.Editor
 {
@@ -13,10 +15,10 @@ namespace TinyDataTable.Editor
         public override VisualElement CreateInspectorGUI()
         {
             var root = new VisualElement();
-            
+
             var scriptProp = serializedObject.FindProperty("m_Script");
-            
-/*            
+
+/*
             var scriptField = new PropertyField(scriptProp);
             scriptField.SetEnabled(false);
             root.Add(scriptField);
@@ -31,7 +33,10 @@ namespace TinyDataTable.Editor
                 var dataTableAsset = serializedObject.targetObject as DataTableAsset;
                 if (dataTableAsset != null)
                 {
-                    Export(dataTableAsset);
+                    SaveDataTable.SaveScript(
+                        dataTableAsset,dataTableAsset.Settings.className,
+                        dataTableAsset.Settings.namespaceName,
+                        "Assets/TinyDataTable/Script");
                 }
             };
             root.Add(exportButton);
@@ -45,6 +50,11 @@ namespace TinyDataTable.Editor
                 propertyField.style.marginTop = 10;
                 root.Add(propertyField);
             }
+
+            // Tagフィールド
+            root.Add(new Label("Tags"));            
+            var tagField = MakeTagField();
+            root.Add(tagField);
             
             // DataTableフィールドの取得
             var dataProp = serializedObject.FindProperty("data");
@@ -56,88 +66,172 @@ namespace TinyDataTable.Editor
                 gridField.style.marginTop = 10;
                 root.Add(gridField);
             }
-
+            
             return root;
         }
-        
-        private const string KeyIsGenerating = "TinyDataTable_IsGenerating";
-        private const string ScriptFilePath = "TinyDataTableScript_FilePath";        
-        private const string AssetFilePath = "TinyDataTableAsset_FilePath";        
 
-        private void Export(DataTableAsset dataTableAsset)
+        VisualElement MakeTagField()
         {
-            var text = TinyDataTable.Editor.ExportDataTableToCSharp.Export(dataTableAsset.Data,dataTableAsset.Settings,"TinyDataTable/DataTableAsset.asset");
-
-            var path = SaveScript("Assets/TinyDataTable/Script", $"{dataTableAsset.Settings.className}.cs", text);
-            
-            SessionState.SetBool(KeyIsGenerating, true);
-            SessionState.SetString(ScriptFilePath, path);
-            SessionState.SetString(AssetFilePath, AssetDatabase.GetAssetPath(dataTableAsset));
-
-            // アセットデータベースを更新してUnityに認識させる
-            AssetDatabase.Refresh();
-        }
-
-        [InitializeOnLoadMethod]
-        private static void OnCompileFinished()
-        {
-            // 4. 続きの処理が必要かチェック
-            if (!SessionState.GetBool(KeyIsGenerating, false)) return;
-            
-            string scriptPath = SessionState.GetString(ScriptFilePath, string.Empty);
-            string assetPath = SessionState.GetString(AssetFilePath, string.Empty);
-
-            SessionState.EraseBool(KeyIsGenerating);
-            SessionState.EraseString(ScriptFilePath);
-            SessionState.EraseString(AssetFilePath);            
-            
-            MonoScript script = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath);
-            DataTableAsset asset = AssetDatabase.LoadAssetAtPath<DataTableAsset>(assetPath);
-            if (script != null && asset != null)
+            void setStyle( VisualElement element)
             {
-                asset.Settings.classScript = script;
-                var serializedObject =  new SerializedObject(asset);
-                serializedObject.Update();
-                EditorUtility.SetDirty(asset);
-            }
-            else
-            {
-                Debug.LogError("Failed to load asset.");
-            }
-        }
+                var toggle = new ToolbarToggle()
+                {
+                    text = string.IsNullOrEmpty(name) ? "String.Empty" : name,
+                };
+                element.style.borderLeftWidth = 1.0f;
+                element.style.borderRightWidth = 1.0f;
+                element.style.borderBottomWidth = 1.0f;
+                element.style.borderTopWidth = 1.0f;
+                element.style.borderTopLeftRadius = 10;
+                element.style.borderTopRightRadius = 10;
+                element.style.borderBottomLeftRadius = 10;
+                element.style.borderBottomRightRadius = 10;
+                element.style.paddingLeft = 2;
+                element.style.paddingRight = 2;
 
-
-        public static string SaveScript(string folderPath,string fileName, string content)
-        {
-            if (!AssetDatabase.IsValidFolder(folderPath))
-            {
-                CreateFolderRecursively(folderPath);
             }
 
-            // ファイルパスの結合
-            string filePath = Path.Combine(folderPath, fileName);
-
-            // ファイル書き込み
-            File.WriteAllText(filePath, content);
-            
-            return filePath;
-        }
-
-        // フォルダを再帰的に作成するヘルパー
-        private static void CreateFolderRecursively(string path)
-        {
-            if (AssetDatabase.IsValidFolder(path)) return;
-
-            string parent = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(parent) && !AssetDatabase.IsValidFolder(parent))
+            void refreshToggle( Toggle toggle , string tag )
             {
-                CreateFolderRecursively(parent);
+                var tagProp = this.serializedObject.FindProperty("tags");
+                for (int i = 0; i < tagProp.arraySize; i++)
+                {
+                    if (tagProp.GetArrayElementAtIndex(i).stringValue == tag)
+                    {
+                        toggle.style.backgroundColor = Color.darkCyan; // オン色
+                        if(toggle.value == false) toggle.value = true;
+                        return;
+                    }
+                } 
+                if(toggle.value == true) toggle.value = false;
+                toggle.style.backgroundColor = StyleKeyword.Null; // デフォルトに戻す
             }
 
-            string parentFolder = Path.GetDirectoryName(path);
-            string newFolder = Path.GetFileName(path);
-    
-            AssetDatabase.CreateFolder(parentFolder, newFolder);
+
+            void MakeTages(VisualElement baseField)
+            {
+                var target = serializedObject.targetObject as DataTableAsset;
+                var tags = TinyDataTableSettings.Instance.Tags
+                    .Concat(target.Tags)
+                    .Where(t => string.IsNullOrEmpty(t) is false &&
+                                t.Contains("\"") is false &&
+                                t.Contains("\\") is false &&
+                                t.Contains("'") is false )
+                    .Distinct()
+                    .ToArray();
+
+
+                foreach (var tag in tags)
+                {
+                    var toggle = new ToolbarToggle()
+                    {
+                        text = string.IsNullOrEmpty(tag) ? "String.Empty" : tag,
+                    };
+                    setStyle(toggle);
+                    refreshToggle(toggle, tag);
+                    toggle.RegisterValueChangedCallback(evt =>
+                    {
+                        this.serializedObject.Update();
+                        var tagProp = this.serializedObject.FindProperty("tags");
+                        if (evt.newValue)
+                        {
+                            var hasTag = Enumerable.Range(0, tagProp.arraySize)
+                                .Any(i => tagProp.GetArrayElementAtIndex(i).stringValue == tag);
+                            if (hasTag is false)
+                            {
+                                var i = tagProp.arraySize;
+                                tagProp.InsertArrayElementAtIndex(i);
+                                tagProp.GetArrayElementAtIndex(i).stringValue = tag;
+                                this.serializedObject.ApplyModifiedProperties();
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < tagProp.arraySize; i++)
+                            {
+                                if (tagProp.GetArrayElementAtIndex(i).stringValue == tag)
+                                {
+                                    tagProp.DeleteArrayElementAtIndex(i);
+                                    this.serializedObject.ApplyModifiedProperties();
+                                    break;
+                                }
+                            }
+                        }
+
+                    });
+                    
+                    // カーソルが離れた時 (MouseLeave)
+                    toggle.RegisterCallback<PointerLeaveEvent>(evt =>
+                    {
+//                        Debug.Log("カーソルが離れました (Left)");
+                    });
+
+                    // 押して離した時 (MouseUp)
+                    toggle.RegisterCallback<PointerUpEvent>(evt =>
+                    {
+//                        Debug.Log("離されました (Released)");
+                    });                    
+
+                    toggle.TrackSerializedObjectValue(this.serializedObject, (prop) => { refreshToggle(toggle, tag); });
+
+
+                    baseField.Add(toggle);
+                }
+
+
+                var button = new Button() { text = "+" };
+                button.style.width = 18;
+                button.style.height = 18;
+
+                setStyle(button);
+                button.clicked += () =>
+                {
+                    baseField.Remove(button);
+                    var textField = new TextField();
+                    textField.isDelayed = true;
+                    setStyle(textField);
+                    textField.style.minWidth = 80;
+                    textField.RegisterValueChangedCallback(evt =>
+                    {
+                        if (tags.Contains(evt.newValue) is false &&
+                            evt.newValue.Contains("\"") is false &&
+                            evt.newValue.Contains("\\") is false &&
+                            evt.newValue.Contains("'") is false )
+                        {
+                            // 設定オブジェクトを取得
+                            var serializedSettings = TinyDataTableSettings.GetSerializedSettings();
+                            var settingTagProp = serializedSettings.FindProperty("tags");
+                            settingTagProp.InsertArrayElementAtIndex(settingTagProp.arraySize);
+                            settingTagProp.GetArrayElementAtIndex(settingTagProp.arraySize - 1).stringValue =
+                                evt.newValue;
+                            serializedSettings.ApplyModifiedProperties();
+                            var setting = serializedSettings.targetObject as TinyDataTableSettings;
+                            if (setting != null)
+                            {
+                                setting.Save();
+                            }
+
+                            var tagProp = this.serializedObject.FindProperty("tags");
+                            tagProp.InsertArrayElementAtIndex(tagProp.arraySize);
+                            tagProp.GetArrayElementAtIndex(tagProp.arraySize - 1).stringValue = evt.newValue;
+                            serializedObject.ApplyModifiedProperties();
+
+                            baseField.Clear();
+                            MakeTages(baseField);
+                        }
+                    });
+
+                    baseField.Add(textField);
+                };
+                baseField.Add(button);
+            }
+
+            var tagField = new VisualElement(){ name = "Tags" };
+            tagField.style.flexDirection = FlexDirection.Row;
+            tagField.style.flexWrap = Wrap.Wrap;
+            MakeTages(tagField);            
+            
+            return tagField;
         }
     }
 }

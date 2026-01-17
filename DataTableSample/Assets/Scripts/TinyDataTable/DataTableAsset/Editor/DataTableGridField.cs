@@ -153,7 +153,12 @@ namespace TinyDataTable.Editor
             {
                 name = "Index",
                 makeHeader = () => MakeColumHeader(property,"Index",false,"Index"),
-                makeCell = () => new VisualElement() { },
+                makeCell = () =>
+                {
+                    var e= new VisualElement() { };
+                    e.style.flexGrow = 1.0f;
+                    return e;
+                },
                 bindCell = (e,i) =>
                 {
                     if (i > 0)
@@ -161,6 +166,9 @@ namespace TinyDataTable.Editor
                         var label = new Label();
                         label.text =$"{i - 1}";
                         label.style.unityTextAlign = TextAnchor.MiddleCenter;
+                        label.AddManipulator( MakeMenuIndexManipulator(property,label,i) );
+                        var isObsolete = DataTablePropertyUtil.GetHeaderObsolete(property, i).boolValue;
+                        e.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();                        
                         e.Clear();
                         e.Add(label);
                     }
@@ -188,13 +196,17 @@ namespace TinyDataTable.Editor
                 },
                 makeCell = () =>
                 {
-                    var e = new TextField() { };
-                    idTextFieldList.Add(e);
+                    var e = new VisualElement();
+                    e.style.flexGrow = 1.0f;
+                    var t = new TextField() { };
+                    idTextFieldList.Add(t);
+                    e.Add(t);
                     return e;
                 },
                 bindCell = (e,i) =>
                 {
-                    if (e is TextField textField)
+                    var textField = e.Q<TextField>();
+                    if ( textField != null)
                     {
                         var headerProp = DataTablePropertyUtil.GetHeader(property,i);
                         var nameProp = headerProp.FindPropertyRelative("Name");
@@ -202,8 +214,10 @@ namespace TinyDataTable.Editor
                         textField.RegisterValueChangedCallback(evt => { ReloadIDText(); });
                         e.userData = nameProp;
                         ReloadIDText(textField);
-                        textField.SetEnabled(headerProp.FindPropertyRelative("ID").intValue > 0);                        
+                        textField.SetEnabled(headerProp.FindPropertyRelative("ID").intValue > 0);
                     }
+                    var isObsolete = DataTablePropertyUtil.GetHeaderObsolete(property, i).boolValue;
+                    e.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();                        
                 },
                 unbindCell = (e,i) =>
                 {
@@ -243,9 +257,11 @@ namespace TinyDataTable.Editor
                 bindCell = (e,i) =>
                 {
                     var columProp = DataTablePropertyUtil.GetColumn(property,index);
-                    var isObsolete = columProp.FindPropertyRelative("obsolete").boolValue;
+                    var isObsoleteCol = columProp.FindPropertyRelative("obsolete").boolValue;
+                    var isObsoleteRow = DataTablePropertyUtil.GetHeaderObsolete(property, i).boolValue;
+
                     e.style.flexGrow = 1.0f;
-                    e.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();
+                    e.style.backgroundColor = (isObsoleteCol|isObsoleteRow)?_obsoleteColor:new StyleColor();
 
                     var rows = DataTablePropertyUtil.GetRows(columProp);
                     if (i < rows.arraySize)
@@ -286,7 +302,6 @@ namespace TinyDataTable.Editor
 
         private ContextualMenuManipulator MakeMenuManipulator(SerializedProperty property,VisualElement element,int index)
         {
-            
             var manipulator = new ContextualMenuManipulator((evt) =>
             {
                 // メニュー項目を追加
@@ -302,6 +317,8 @@ namespace TinyDataTable.Editor
                             obsoleteProp.boolValue = !obsoleteProp.boolValue;
                             columProp.serializedObject.ApplyModifiedProperties();
                             element.style.backgroundColor = obsoleteProp.boolValue?_obsoleteColor:new StyleColor();
+                            property.serializedObject.ApplyModifiedProperties();
+                            property.serializedObject.Update();
                             multiColumnListView.RefreshItems();
                         },
                         (action) =>
@@ -332,6 +349,38 @@ namespace TinyDataTable.Editor
                     evt.menu.AppendSeparator();
                 }
             });  
+            return manipulator;
+        }
+
+        private ContextualMenuManipulator MakeMenuIndexManipulator(
+            SerializedProperty property,
+            VisualElement element,
+            int index)
+        {
+            var manipulator = new ContextualMenuManipulator((evt) =>
+            {
+                evt.menu.AppendAction("Obsolete Record",
+                    (action) =>
+                    {
+                        var obsoleteProp = DataTablePropertyUtil
+                            .GetHeader(property, index)
+                            .FindPropertyRelative("Obsolete");
+                        obsoleteProp.boolValue = !obsoleteProp.boolValue;
+                        property.serializedObject.ApplyModifiedProperties();
+                        property.serializedObject.Update();    
+                        multiColumnListView.RefreshItems();
+                    },
+                    (action) =>
+                    {
+                        var obsolete = DataTablePropertyUtil
+                            .GetHeader(property,index)
+                            .FindPropertyRelative("Obsolete").boolValue;
+                        
+                        return obsolete ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal;
+                    }
+                );
+            }
+            );
             return manipulator;
         }
 
