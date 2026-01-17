@@ -19,22 +19,14 @@ namespace TinyDataTable.Editor
 
             var scriptProp = serializedObject.FindProperty("m_Script");
             var dataTableAsset = serializedObject.targetObject as DataTableAsset;
-/*
-            var scriptField = new PropertyField(scriptProp);
-            scriptField.SetEnabled(false);
-            root.Add(scriptField);
-*/
-
 
             //クラス情報
             if (dataTableAsset.ClassScript == null)
             {
                 string path = AssetDatabase.GetAssetPath(serializedObject.targetObject);
-                string fileName = Path.GetFileName(path); // "MyData.asset"
-                string fileNameNoExt = Path.GetFileNameWithoutExtension(path); // "MyData"
                 var classNameField = new TextField()
                 {
-                    value = fileNameNoExt,
+                    value = FileNameToClassName(path),
                 };
                 var className = UIToolkitEditorUtility.CreateLabeledVisualElement("Class Name", classNameField);
 
@@ -299,6 +291,48 @@ namespace TinyDataTable.Editor
             MakeTages(tagField);            
             
             return tagField;
+        }
+        
+        /// <summary>
+        /// ファイル名をクラス名に使える文字列に変換する
+        /// 1._以外の記号を_に置き換える
+        /// 2.先頭が数字なら_をつける
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private string FileNameToClassName(string path)
+        {
+            string fileNameNoExt = Path.GetFileNameWithoutExtension(path);
+
+            if (string.IsNullOrEmpty(fileNameNoExt)) return "_";            
+
+            var sb = new System.Text.StringBuilder();
+
+            for (int i = 0; i < fileNameNoExt.Length; i++)
+            {
+                char c = fileNameNoExt[i];
+        
+                // 文字、数字、アンダースコアならOK
+                if (char.IsLetterOrDigit(c) || c == '_')
+                {
+                    sb.Append(c);
+                }
+                else
+                {
+                    // それ以外 (記号、スペースなど) は _ に
+                    sb.Append('_');
+                }
+            }
+
+            string result = sb.ToString();
+
+            // 先頭が数字なら _ を付与
+            if (result.Length > 0 && char.IsDigit(result[0]))
+            {
+                result = "_" + result;
+            }            
+            
+            return result;
         }
 
         public static bool CheckNeedEnsureAddressable(UnityEngine.Object asset)
