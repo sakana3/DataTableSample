@@ -12,8 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 598866688a5e98a4daf92058e377ef20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-Editor::TinyDataTable.Editor.TinyDataTableSettings
-  headerColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  enableAutoSave: 1
   defaultNamespace: ID
   assemblies:
   - Assembly-CSharp
@@ -34,8 +32,3 @@ MonoBehaviour:
   - \Tag
   - \No
   - '"""""'
-  - dsadsa
-  - 
-  - 
-  - jlk
-  - hjk
