@@ -202,7 +202,7 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// Enumを追加
         /// </summary>
-        public CSharpCodeBuilder AddEnums( params (string Name , int Value , string Comment,string attribute )[] members )
+        public CSharpCodeBuilder AddEnums( params (string Name , string Value , string Comment,string attribute )[] members )
         {
             var maxLength = members.Max( m => m.Name.Length );
             
@@ -219,7 +219,7 @@ namespace TinyDataTable.Editor
                 }
                 else
                 {
-                    AppendLine($"{member.Name.PadRight(maxLength)} = {(member.Value.ToString()+",").PadRight(10)} // {member.Comment}");
+                    AppendLine($"{member.Name.PadRight(maxLength)} = {(member.Value.ToString()+",").PadRight(12)} // {member.Comment}");
                 }
             }
             return this;

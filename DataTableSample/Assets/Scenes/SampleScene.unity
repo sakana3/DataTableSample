@@ -461,6 +461,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2d930bb9666d544789ee31e1b652d21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
+  fruit:
+    _value: 714369421
 --- !u!4 &1099329029
 Transform:
   m_ObjectHideFlags: 0

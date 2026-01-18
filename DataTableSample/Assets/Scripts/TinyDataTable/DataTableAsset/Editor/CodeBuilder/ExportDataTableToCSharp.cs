@@ -28,13 +28,13 @@ namespace TinyDataTable.Editor
             using (cb.BeginNamespace(namespaceName))
             {
                 cb.AddAttribute("Serializable");
-                using (cb.BeginStruct(className , inherit:$"IEquatable<{className}>, IEquatable<{className}.Enum>", isPartial:true))
+                using (cb.BeginStruct(className , inherit:$"IIdentifier, IEquatable<{className}>, IEquatable<{className}.Enum>", isPartial:true))
                 {
                     //Enum
                     using (cb.AddAttribute("Serializable").BeginEnum("Enum"))
                     {
                         var enums = data.Header.RowData
-                            .Select(row => (row.Name, row.ID, row.Description,row.Obsolete?"Obsolete":""))
+                            .Select((row,i) => ($"[EnumOrder({i})] {row.Name}", $"0x{row.ID:X8}", row.Description,row.Obsolete?"Obsolete":""))
                             .ToArray();
                         cb.AddEnums(enums);
                     }
@@ -264,7 +264,17 @@ namespace TinyDataTable.Editor
                         var tags = String.Join(",", asset.Tags.Select(t=>$"\"{t}\"") );
                         cb.AppendLine(tags);                        
                     }
-                    cb.AddCode("public static bool HasTag(string tag) => _assetTags.Contains(tag)");                    
+                    cb.AddCode("public static bool HasTag(string tag) => _assetTags.Contains(tag)");
+                    cb.AppendLine();
+                    
+                    //プロパティドロワー（仮）
+                    using (cb.BeginIfdef("UNITY_EDITOR"))
+                    {
+                        cb.AppendLine($"[UnityEditor.CustomPropertyDrawer(typeof({className}))]");
+                        using (cb.BeginClass($"{className}PropertyDrawer" , "private" ,$"TinyDataTable.Editor.IDPropertyDrawerBase<{className}.Enum>" ))
+                        {
+                        }
+                    }
                 }
             }
 
