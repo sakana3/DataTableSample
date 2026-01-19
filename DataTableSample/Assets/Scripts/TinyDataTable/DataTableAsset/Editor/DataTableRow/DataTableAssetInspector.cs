@@ -114,6 +114,23 @@ namespace TinyDataTable.Editor
             root.Add(tagField);
             
             // DataTableフィールドの取得
+            var dataTableProp = serializedObject.FindProperty("dataTable");
+            if (dataTableProp != null)
+            {
+                // カスタムグリッドフィールドを表示
+                var propertyField = new PropertyField(dataTableProp,"DataTable");
+                root.Add(propertyField);
+
+                var button = new Button(){text = "Export"};
+                button.clicked += () =>
+                {
+                    GUIUtility.systemCopyBuffer = ExportDataTableToCSharp.MakeRecordScript(20);
+                };
+                root.Add(button);
+            }
+
+
+            // DataTableフィールドの取得
             var dataProp = serializedObject.FindProperty("data");
             if (dataProp != null)
             {

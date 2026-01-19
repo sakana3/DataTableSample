@@ -30,6 +30,21 @@ namespace TinyDataTable
 
         //Tags
         public string[] Tags => tags;
+
+        //DataTable
+        [SerializeField] private DataSheet dataTable;
+
+        [ContextMenu("AddRecordInt")]
+        void AddRecordInt()
+        {
+            dataTable.AddField(typeof(int),"Num");
+        }
+        
+        [ContextMenu("AddRecordString")]
+        void AddRecordString()
+        {
+            dataTable.AddField(typeof(string),"Str");
+        }        
         
         //Data
         [SerializeField] private DataTableRow data;
@@ -56,7 +71,13 @@ namespace TinyDataTable
         public int ColumnSize => data.ColumnSize;
 
         /// Returns the number of rows in the data table.
-        public int RowSize => data.RowSize;        
+        public int RowSize => data.RowSize;
+
+        private void Reset()
+        {
+            dataTable = new DataSheet();
+            dataTable.Initialize();
+        }
     }
 }
 
