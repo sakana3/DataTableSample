@@ -32,10 +32,10 @@ namespace TinyDataTable
         public string[] Tags => tags;
         
         //Data
-        [SerializeField] private DataTable data;
+        [SerializeField] private DataTableRow data;
 
         /// GetData
-        public DataTable Data => data;
+        public DataTableRow Data => data;
         
         /// GetColum       
         public DataTableColumnData<T> GetColum<T>(int index) => data.GetColum<T>(index);

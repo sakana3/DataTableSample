@@ -9,7 +9,7 @@ using UnityEditor.UIElements;
 
 namespace TinyDataTable.Editor
 {
-    [CustomPropertyDrawer(typeof(DataTable))]
+    [CustomPropertyDrawer(typeof(DataTableRow))]
     public class DataTablePropertyDrawer : PropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)

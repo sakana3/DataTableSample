@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 namespace TinyDataTable
 {
     [Serializable]
-    public class DataTable
+    public class DataTableRow
     {
         [Serializable]
         public struct HeaderData
@@ -73,7 +73,7 @@ namespace TinyDataTable
         public int RowSize => Header.RowSize;
 
         /// Represents a table structure
-        public DataTable()
+        public DataTableRow()
         {
             this.header = new DataTableColumnHeader();
             this.header.Prepare();
