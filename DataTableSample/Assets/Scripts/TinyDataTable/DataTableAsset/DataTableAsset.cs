@@ -37,13 +37,13 @@ namespace TinyDataTable
         [ContextMenu("AddRecordInt")]
         void AddRecordInt()
         {
-            dataTable.AddField(typeof(int),"Num");
+            dataTable.AddField(typeof(int),"Num",false);
         }
         
         [ContextMenu("AddRecordString")]
         void AddRecordString()
         {
-            dataTable.AddField(typeof(string),"Str");
+            dataTable.AddField(typeof(string),"Str",false);
         }        
         
         //Data

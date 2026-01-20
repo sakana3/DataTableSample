@@ -7,9 +7,14 @@ using UnityEngine;
 namespace TinyDataTable
 {
     [Serializable]
-    public struct DataSheet
+    public class DataSheet
     {
         [SerializeReference] public IRecord record;
+
+        public void Test()
+        {
+            Debug.Log(this.ToString());
+        }
         
 #if UNITY_EDITOR
         public void Initialize( params Type[] typeArgument )
@@ -19,6 +24,13 @@ namespace TinyDataTable
             {
                 fieldInfos = Array.Empty<RecordFieldInfo>()
             };
+            record.Iniaialize(new RecordDataHeader()
+            {
+                name = "Invalid",
+                id = 0,
+                index = 0,
+                description = string.Empty
+            });
         }
         
         public static IRecord MakeRecord( params Type[] typeArgument )
@@ -49,7 +61,7 @@ namespace TinyDataTable
             return record;
         }
         
-        public void AddField( Type type , string fieldName )
+        public void AddField( Type type , string fieldName ,bool isArray = false )
         {
             var header = record.Header;
             var newField = new RecordFieldInfo()
@@ -58,6 +70,11 @@ namespace TinyDataTable
             };
             header.fieldInfos = header.fieldInfos.Append(newField).ToArray();
             record.Header = header;
+
+            if (isArray)
+            {
+                type = type.MakeArrayType();
+            }
             
             var newFiledTypes = record.GetFieldTypes().Append(type).ToArray();
             record = ChangeRecordFieldType(record, newFiledTypes);

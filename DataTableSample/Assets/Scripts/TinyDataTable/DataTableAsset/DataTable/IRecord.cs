@@ -6,7 +6,8 @@ namespace TinyDataTable
     {
         public RecordHeader Header { get; set; }
         public Type[] GetFieldTypes();
-        public IRecordData GetRecord(int rowIndex);        
+        public IRecordData GetRecord(int rowIndex);
+        public void Iniaialize(RecordDataHeader newHeader) { }
     }
     
     public interface IRecordData

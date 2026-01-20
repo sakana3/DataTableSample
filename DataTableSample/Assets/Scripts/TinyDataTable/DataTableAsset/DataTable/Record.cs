@@ -7,7 +7,7 @@ namespace TinyDataTable
 {
     public static class RecordGenericType
     {
-        public static int TypeCount => 20;
+        public static int TypeCount => 32;
 
         public static Type  GetType(int numField)
         {
@@ -34,6 +34,18 @@ namespace TinyDataTable
                 18 => typeof(Record<,,,,,,,,,,,,,,,,,>),
                 19 => typeof(Record<,,,,,,,,,,,,,,,,,,>),
                 20 => typeof(Record<,,,,,,,,,,,,,,,,,,,>),
+                21 => typeof(Record<,,,,,,,,,,,,,,,,,,,,>),
+                22 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,>),
+                23 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,>),
+                24 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,>),
+                25 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,>),
+                26 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                27 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                28 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                29 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                30 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                31 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                32 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
                 _ => throw new IndexOutOfRangeException(),
             };
             return type;
@@ -49,6 +61,7 @@ namespace TinyDataTable
         public RecordHeader Header { set => header = value; get => header; }
         public Type[] GetFieldTypes() => Type.EmptyTypes;
         public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+        public void Iniaialize( RecordDataHeader newHeader ) { recordData = new RecordData[1] { new RecordData() { header = newHeader } }; }
 
         [Serializable]
         public struct RecordData : IRecordData
@@ -605,7 +618,6 @@ namespace TinyDataTable
         {
             public RecordDataHeader header;
             public RecordDataHeader Header {set => header = value; get => header;}
-            
             public T0 Field0;
             public T1 Field1;
             public T2 Field2;
@@ -626,6 +638,540 @@ namespace TinyDataTable
             public T17 Field17;
             public T18 Field18;
             public T19 Field19;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23),typeof(T24)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+            public T24 Field24;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23),typeof(T24),typeof(T25)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+            public T24 Field24;
+            public T25 Field25;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23),typeof(T24),typeof(T25),typeof(T26)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+            public T24 Field24;
+            public T25 Field25;
+            public T26 Field26;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23),typeof(T24),typeof(T25),typeof(T26),typeof(T27)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+            public T24 Field24;
+            public T25 Field25;
+            public T26 Field26;
+            public T27 Field27;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23),typeof(T24),typeof(T25),typeof(T26),typeof(T27),typeof(T28)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+            public T24 Field24;
+            public T25 Field25;
+            public T26 Field26;
+            public T27 Field27;
+            public T28 Field28;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23),typeof(T24),typeof(T25),typeof(T26),typeof(T27),typeof(T28),typeof(T29)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+            public T24 Field24;
+            public T25 Field25;
+            public T26 Field26;
+            public T27 Field27;
+            public T28 Field28;
+            public T29 Field29;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29,T30> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23),typeof(T24),typeof(T25),typeof(T26),typeof(T27),typeof(T28),typeof(T29),typeof(T30)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+            public T24 Field24;
+            public T25 Field25;
+            public T26 Field26;
+            public T27 Field27;
+            public T28 Field28;
+            public T29 Field29;
+            public T30 Field30;
+        }
+    }
+
+    [Serializable]
+    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29,T30,T31> : IRecord
+    {
+        public RecordHeader header;
+        public RecordData[] recordData;
+        private static Type[] _fieldTypes = new []{typeof(T0),typeof(T1),typeof(T2),typeof(T3),typeof(T4),typeof(T5),typeof(T6),typeof(T7),typeof(T8),typeof(T9),typeof(T10),typeof(T11),typeof(T12),typeof(T13),typeof(T14),typeof(T15),typeof(T16),typeof(T17),typeof(T18),typeof(T19),typeof(T20),typeof(T21),typeof(T22),typeof(T23),typeof(T24),typeof(T25),typeof(T26),typeof(T27),typeof(T28),typeof(T29),typeof(T30),typeof(T31)};
+        public RecordHeader Header { set => header = value; get => header; }
+        public Type[] GetFieldTypes() => _fieldTypes;
+        public IRecordData GetRecord(int rowIndex) => recordData[rowIndex];
+
+        [Serializable]
+        public struct RecordData : IRecordData
+        {
+            public RecordDataHeader header;
+            public RecordDataHeader Header {set => header = value; get => header;}
+            public T0 Field0;
+            public T1 Field1;
+            public T2 Field2;
+            public T3 Field3;
+            public T4 Field4;
+            public T5 Field5;
+            public T6 Field6;
+            public T7 Field7;
+            public T8 Field8;
+            public T9 Field9;
+            public T10 Field10;
+            public T11 Field11;
+            public T12 Field12;
+            public T13 Field13;
+            public T14 Field14;
+            public T15 Field15;
+            public T16 Field16;
+            public T17 Field17;
+            public T18 Field18;
+            public T19 Field19;
+            public T20 Field20;
+            public T21 Field21;
+            public T22 Field22;
+            public T23 Field23;
+            public T24 Field24;
+            public T25 Field25;
+            public T26 Field26;
+            public T27 Field27;
+            public T28 Field28;
+            public T29 Field29;
+            public T30 Field30;
+            public T31 Field31;
         }
     }
 }

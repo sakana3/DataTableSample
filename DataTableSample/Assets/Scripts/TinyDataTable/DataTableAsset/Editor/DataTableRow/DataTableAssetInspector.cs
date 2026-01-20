@@ -124,7 +124,7 @@ namespace TinyDataTable.Editor
                 var button = new Button(){text = "Export"};
                 button.clicked += () =>
                 {
-                    GUIUtility.systemCopyBuffer = ExportDataTableToCSharp.MakeRecordScript(20);
+                    GUIUtility.systemCopyBuffer = ExportDataTableToCSharp.MakeRecordScript(32);
                 };
                 root.Add(button);
             }
