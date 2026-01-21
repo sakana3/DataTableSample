@@ -19,7 +19,13 @@ namespace TinyDataTable.Editor
         public DataSheetField(SerializedProperty property)
         {
             _property = property;
-            
+            // 拡張子 (.uss) を含めて指定します
+            var styleSheet = EditorGUIUtility.Load("TinyDataTableMultiColumListViewStyle.uss") as StyleSheet;
+            if (styleSheet != null)
+            {
+                this.styleSheets.Add(styleSheet);
+            }
+
             Add(new Label("DataSheet"));
             multiColumnListView = CreateListView(property);
             Add(multiColumnListView);
@@ -41,12 +47,44 @@ namespace TinyDataTable.Editor
                 showAlternatingRowBackgrounds = AlternatingRowBackground.All,
                 showBoundCollectionSize = false,
                 showFoldoutHeader = true,
+                selectionType = SelectionType.Multiple
             };
             listView.columns.reorderable = false;
             listView.columns.resizePreview = true;
             listView.columns.resizable = true;            
-            
             listView.style.overflow = Overflow.Visible; // 通常はHiddenにしてスクロールバーに任せる
+            
+            listView.itemsAdded += (indexes) =>
+            {
+                foreach (var index in indexes)
+                {
+                    DataSheetPropertyUtility.AddRow(property,index);
+                }
+            };
+            listView.itemsRemoved += (indexes) =>
+            {
+                foreach (var index in indexes.OrderByDescending(i => i))
+                {
+                    DataSheetPropertyUtility.RemoveRow(property,index);
+                }
+            };
+            listView.itemIndexChanged += (form, to) =>
+            {
+                DataSheetPropertyUtility.MoveRow(property,form,to);
+            };
+            listView.canStartDrag += args => args.id is not 0;
+            listView.dragAndDropUpdate += (args) => (args.insertAtIndex is 0) ?
+                DragVisualMode.Rejected : DragVisualMode.Move;
+            
+            this.TrackSerializedObjectValue(property.serializedObject, (prop) =>
+            {
+                if (false)
+                {
+                    this.Clear();
+                    multiColumnListView = CreateListView(property);
+                    Add( multiColumnListView );
+                }
+            });
             
             SetupColumns(property, listView);
 
@@ -55,7 +93,6 @@ namespace TinyDataTable.Editor
             return listView;
         }
 
-         
         private void SetupRows(SerializedProperty property, MultiColumnListView listView)
         {
             var rowCount = DataSheetPropertyUtility.GetRowCount(property);
@@ -70,7 +107,6 @@ namespace TinyDataTable.Editor
             //Make Columns
             listView.columns.Clear();
 
-
             var indexColumn = MakeIndexColumn(property);
             listView.columns.Add(indexColumn);
             
@@ -83,6 +119,9 @@ namespace TinyDataTable.Editor
                 var columProp = MakePropertyColumn(property, i);
                 listView.columns.Add(columProp);
             }
+
+            var lastyColumn = MakeLastColumn(property);
+            listView.columns.Add(lastyColumn);
         }        
      
      
@@ -119,7 +158,7 @@ namespace TinyDataTable.Editor
 //                        ReloadIDText(textField);
                         textField.SetEnabled(iRow > 0);
                     }
-                    var isObsolete = DataSheetPropertyUtility.IsRowObsolete(property, iRow);
+                    var isObsolete = DataSheetPropertyUtility.RowObsolete(property, iRow).boolValue;
                     e.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();                        
                 },
                 unbindCell = (e,i) =>
@@ -156,8 +195,8 @@ namespace TinyDataTable.Editor
                         var label = new Label();
                         label.text =$"{iRow - 1}";
                         label.style.unityTextAlign = TextAnchor.MiddleCenter;
-//                        label.AddManipulator( MakeMenuIndexManipulator(property,label,i) );
-                        var isObsolete = DataSheetPropertyUtility.IsRowObsolete(property, iRow);
+                        label.AddManipulator( MakeRowIndexManipulator(property,label,iRow) );
+                        var isObsolete = DataSheetPropertyUtility.RowObsolete(property, iRow).boolValue;
                         e.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();                        
                         e.Clear();
                         e.Add(label);
@@ -167,6 +206,7 @@ namespace TinyDataTable.Editor
                 stretchable = false,
                 resizable = false,
                 width = 40    ,
+                maxWidth = 40,
                 sortable = false
             };
             return colum;            
@@ -188,8 +228,8 @@ namespace TinyDataTable.Editor
                 makeCell = () => new VisualElement() { },
                 bindCell = (e,iRow) =>
                 {
-                    var isObsoleteCol = DataSheetPropertyUtility.IsColumObsolete(property,iColum);
-                    var isObsoleteRow = DataSheetPropertyUtility.IsRowObsolete(property,iRow);
+                    var isObsoleteCol = DataSheetPropertyUtility.ColumObsolete(property,iColum).boolValue;
+                    var isObsoleteRow = DataSheetPropertyUtility.RowObsolete(property,iRow).boolValue;
                     e.style.flexGrow = 1.0f;
                     e.style.backgroundColor = (isObsoleteCol|isObsoleteRow)?_obsoleteColor:new StyleColor();
 
@@ -209,7 +249,34 @@ namespace TinyDataTable.Editor
             };
             return colum;
         }
-        
+
+        private static Texture2D plusTex = (Texture2D)EditorGUIUtility.IconContent("Toolbar Plus").image;        
+        private Column MakeLastColumn(SerializedProperty property)
+        {
+            Column colum = new Column()
+            {
+                stretchable = false,
+                resizable = false,
+                width = 32,
+                maxWidth = 32,
+//                minWidth = 42,
+                makeHeader = () =>
+                {
+                    var button = new Button();
+                    button.iconImage = plusTex;
+                    button.clicked += () =>
+                    {
+
+                        OpenAddFieldPopup(property, -1, button.worldBound);
+                    };
+                    return button;
+                },
+                makeCell = () => new VisualElement() { },             
+                optional = true
+            };
+            return colum;
+        }
+
         private VisualElement MakeColumHeader(
             SerializedProperty property ,
             string name ,
