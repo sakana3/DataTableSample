@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -80,10 +81,52 @@ namespace TinyDataTable
             record = ChangeRecordFieldType(record, newFiledTypes);
         }
 
-        public void RemoveFieldField(string fieldName)
+        public bool RemoveField(int index)
         {
-            
+             if (index >= 0)
+             {
+                 var tmpHeader = record.Header;
+                 tmpHeader.fieldInfos = tmpHeader.fieldInfos
+                     .Where((t, i) => i != index)
+                     .ToArray();
+                 record.Header = tmpHeader;
+                 var oldTypes = record.GetFieldTypes();
+                 var newTypes = oldTypes
+                     .Where((_, i) => i != index )
+                     .Where((_, i) => i < tmpHeader.fieldInfos.Length)
+                     .ToArray();
+                 
+                 var json = UnityEditor.EditorJsonUtility.ToJson(record,true);
+                 //Jsonの中身を新しいフィールドに書き換える
+                 for (int i = index; i < oldTypes.Length; i++)
+                 {
+                     json = json.Replace($"\"Field{i}\"", $"\"___Field{i}\"");
+                 }
+                 for ( int i = index ; i < oldTypes.Length ; i++)
+                 {
+                     var t = i -1 >= 0 ? $"Field{i -1}" : "FieldX";
+                     json = json.Replace($"\"___Field{i}\"", $"\"{t}\"");
+                 }
+                 record = MakeRecord(newTypes);
+                 UnityEditor.EditorJsonUtility.FromJsonOverwrite(json, record);                 
+
+                 return true;
+             }
+             return false;
         }
+
+        public void FitField()
+        {
+            var filedCount = record.Header.fieldInfos.Length;
+            if (filedCount < record.GetFieldTypes().Length)
+            {
+                var newTypes = record.GetFieldTypes()
+                    .Where((_, i) => i < filedCount)
+                    .ToArray();
+                record = MakeRecord(newTypes);
+            }
+        }
+
 #endif        
     }
 }

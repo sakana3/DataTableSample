@@ -11,10 +11,12 @@ namespace TinyDataTable.Editor
     public partial class DataSheetField : VisualElement
     {
         private SerializedProperty _property = null;
-        private MultiColumnListView multiColumnListView;
+        private MultiColumnListView _multiColumnListView;
         private static Color _obsoleteColor = new Color( Color.darkViolet.r,Color.darkViolet.g,Color.darkViolet.b , 0.25f );
         private List<TextField> idTextFieldList = new List<TextField>();
-        private List<int> itemList = null;
+        private List<string> itemList = new List<string>();
+
+        private ( List<string> fieldNames, List<string> recordNames ) _names = (null,null);
         
         public DataSheetField(SerializedProperty property)
         {
@@ -27,8 +29,8 @@ namespace TinyDataTable.Editor
             }
 
             Add(new Label("DataSheet"));
-            multiColumnListView = CreateListView(property);
-            Add(multiColumnListView);
+            _multiColumnListView = CreateListView(property);
+            Add(_multiColumnListView);
         }
 
         public MultiColumnListView CreateListView(SerializedProperty property)
@@ -51,7 +53,7 @@ namespace TinyDataTable.Editor
             };
             listView.columns.reorderable = false;
             listView.columns.resizePreview = true;
-            listView.columns.resizable = true;            
+            listView.columns.resizable = true;
             listView.style.overflow = Overflow.Visible; // 通常はHiddenにしてスクロールバーに任せる
             
             listView.itemsAdded += (indexes) =>
@@ -75,14 +77,18 @@ namespace TinyDataTable.Editor
             listView.canStartDrag += args => args.id is not 0;
             listView.dragAndDropUpdate += (args) => (args.insertAtIndex is 0) ?
                 DragVisualMode.Rejected : DragVisualMode.Move;
-            
+            listView.columnSortingChanged += () =>
+            {
+                Debug.Log("columnSortingChanged");
+            };
+    
             this.TrackSerializedObjectValue(property.serializedObject, (prop) =>
             {
                 if (false)
                 {
                     this.Clear();
-                    multiColumnListView = CreateListView(property);
-                    Add( multiColumnListView );
+                    _multiColumnListView = CreateListView(property);
+                    Add( _multiColumnListView );
                 }
             });
             
@@ -93,11 +99,12 @@ namespace TinyDataTable.Editor
             return listView;
         }
 
+
         private void SetupRows(SerializedProperty property, MultiColumnListView listView)
         {
-            var rowCount = DataSheetPropertyUtility.GetRowCount(property);
+            var names = DataSheetPropertyUtility.MakeNameList(property);
 
-            itemList = Enumerable.Range(0, rowCount).Select(i => i).ToList();
+            itemList = names.recordNames;
 
             listView.itemsSource = itemList;                    
         }        
@@ -120,13 +127,15 @@ namespace TinyDataTable.Editor
                 listView.columns.Add(columProp);
             }
 
-            var lastyColumn = MakeLastColumn(property);
-            listView.columns.Add(lastyColumn);
+            var lastColumn = MakeLastColumn(property);
+            listView.columns.Add(lastColumn);
+            
         }        
      
      
         private Column MakeIDNameColumn(SerializedProperty property)
         {
+            _names = (null,null);
             var colum = new Column()
             {
                 name = "ID",                
@@ -142,21 +151,24 @@ namespace TinyDataTable.Editor
                     var e = new VisualElement();
                     e.style.flexGrow = 1.0f;
                     var t = new TextField() { };
-                    idTextFieldList.Add(t);
                     e.Add(t);
                     return e;
                 },
                 bindCell = (e,iRow) =>
                 {
                     var textField = e.Q<TextField>();
-                    if ( textField != null)
+                    if( textField != null )
                     {
                         var nameProperty = DataSheetPropertyUtility.GetRowNameProperty(property,iRow);
                         textField.BindProperty(nameProperty);
-//                        textField.RegisterValueChangedCallback(evt => { ReloadIDText(); });
+                        textField.RegisterValueChangedCallback(evt =>
+                        {
+                            ReloadIDText();
+                        });
                         e.userData = nameProperty;
-//                        ReloadIDText(textField);
+                        ReloadIDText(textField);
                         textField.SetEnabled(iRow > 0);
+                        idTextFieldList.Add(textField);
                     }
                     var isObsolete = DataSheetPropertyUtility.RowObsolete(property, iRow).boolValue;
                     e.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();                        
@@ -169,7 +181,7 @@ namespace TinyDataTable.Editor
                     }
                 },
                 stretchable = false,
-                width = 120
+                width = 120,
             };
     
             return colum;                        
@@ -207,11 +219,9 @@ namespace TinyDataTable.Editor
                 resizable = false,
                 width = 40    ,
                 maxWidth = 40,
-                sortable = false
             };
             return colum;            
         }
-
 
         private Column MakePropertyColumn(SerializedProperty property, int iColum )
         {
@@ -262,17 +272,20 @@ namespace TinyDataTable.Editor
 //                minWidth = 42,
                 makeHeader = () =>
                 {
-                    var button = new Button();
-                    button.iconImage = plusTex;
-                    button.clicked += () =>
+                    var button = new Image();
+                    button.image = plusTex;
+                    button.RegisterCallback<MouseDownEvent>((t) =>
                     {
+                        if (t.button == 0)
+                        {
+                            OpenAddFieldPopup(property, -1, button.worldBound);
+                        }
+                    });
 
-                        OpenAddFieldPopup(property, -1, button.worldBound);
-                    };
                     return button;
                 },
                 makeCell = () => new VisualElement() { },             
-                optional = true
+                optional = true,
             };
             return colum;
         }
@@ -289,8 +302,53 @@ namespace TinyDataTable.Editor
             label.style.paddingBottom = 2.0f;
             label.style.backgroundColor = isObsolete?_obsoleteColor:new StyleColor();
             label.tooltip = description;
-
             return label;
-        }                
+        }
+
+        private void ReloadIDText()
+        {
+            _names = DataSheetPropertyUtility.MakeNameList(_property);
+            foreach (var textField in idTextFieldList)
+            {
+                ReloadIDText(textField);
+            }
+        }
+
+        private void ReloadIDText( TextField textField )
+        {
+            if (_names.fieldNames == null || _names.recordNames == null)
+            {
+                _names = DataSheetPropertyUtility.MakeNameList(_property);
+            }
+
+            var value = textField.value;
+            
+            var input = textField.Q(className: "unity-text-field__input");
+            if (input != null)
+            {
+                if ( string.IsNullOrEmpty(textField.value) )
+                {
+                    input.style.color = Color.white;
+                    textField.tooltip = "Input ID name";                    
+                }
+                else if (DataSheetPropertyUtility.CheckCSharpSafeName(textField.value) is false)
+                {
+                    input.style.color = Color.red;
+                    textField.tooltip = "Invalid C# identifier.";
+                }
+                else if (_names.recordNames.Count( t => t == value ) >= 2 ||
+                         _names.fieldNames.Contains(  value ) )
+                {
+                    input.style.color = Color.yellow;
+                    textField.tooltip = "This name is conflict.";
+                }
+                else
+                {
+                    input.style.color = Color.white;
+                    textField.tooltip = string.Empty;
+                }
+            }
+        }        
+        
     }
 }

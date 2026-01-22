@@ -18,12 +18,14 @@ namespace TinyDataTable.Editor
             var manipulator = new ContextualMenuManipulator((evt) =>
             {
                 // メニュー項目を追加
-                evt.menu.AppendAction(
-                    "Add Field",
-                    (action) =>
-                    {
-                        OpenAddFieldPopup(property,index, action.eventInfo.mousePosition);
-                    });
+/*
+                    evt.menu.AppendAction(
+                        "Add Field",
+                        (action) =>
+                        {
+                            OpenAddFieldPopup(property,index, action.eventInfo.mousePosition);
+                        });
+*/                
                     evt.menu.AppendAction(
                         "Obsolete Field",
                         (action) =>
@@ -32,7 +34,7 @@ namespace TinyDataTable.Editor
                             obsolete.boolValue = !obsolete.boolValue;
                             property.serializedObject.ApplyModifiedProperties();
                             element.style.backgroundColor =  obsolete.boolValue?_obsoleteColor:new StyleColor();
-                            multiColumnListView.RefreshItems();
+                            _multiColumnListView.RefreshItems();
                         },
                         (action) =>
                         {
@@ -43,6 +45,18 @@ namespace TinyDataTable.Editor
                         "Remove Field",
                         (action) =>
                         {
+                            DataSheetPropertyUtility.RemoveColum(property, index);
+                            //消したはずのセルのコールバックが走ってしまうので一旦nullにする
+                            foreach (var column in _multiColumnListView.columns)
+                            {
+                                column.bindCell = null;
+                                column.makeCell = null;
+                                column.makeHeader = null;
+                            }
+                            
+                            SetupColumns(property, _multiColumnListView);
+                            _multiColumnListView.RefreshItems();
+                            _multiColumnListView.Rebuild();
                         },
                         (action) =>
                         {
@@ -71,17 +85,17 @@ namespace TinyDataTable.Editor
                     "Obsolete Field",
                     (action) =>
                     {
-                        if (multiColumnListView.selectedIndices.Contains(index))
+                        if (_multiColumnListView.selectedIndices.Contains(index))
                         {
                             var isObsolete = !DataSheetPropertyUtility.RowObsolete(property, index).boolValue;
-                            foreach (var idx in multiColumnListView.selectedIndices)
+                            foreach (var idx in _multiColumnListView.selectedIndices)
                             {
                                 var obsolete = DataSheetPropertyUtility.RowObsolete(property, idx);
                                 obsolete.boolValue = isObsolete;
                             }
                         }
                         property.serializedObject.ApplyModifiedProperties();
-                        multiColumnListView.RefreshItems();
+                        _multiColumnListView.RefreshItems();
                     },
                     (action) =>
                     {
@@ -95,9 +109,9 @@ namespace TinyDataTable.Editor
                     (action) =>
                     {
                         DataSheetPropertyUtility.RemoveRow(property, index);
-                        multiColumnListView.ClearSelection();
+                        _multiColumnListView.ClearSelection();
                         itemList.RemoveAt(index);
-                        multiColumnListView.Rebuild();
+                        _multiColumnListView.Rebuild();
                     },
                     (action) =>
                     {
@@ -136,7 +150,8 @@ namespace TinyDataTable.Editor
 
                             var newIndex = sheet.record.Header.fieldInfos.Length;
                             var newColumn = MakePropertyColumn(property, sheet.record.Header.fieldInfos.Length-1);
-                            multiColumnListView.columns.Insert( multiColumnListView.columns.Count - 1, newColumn );
+                            _multiColumnListView.columns.Insert( _multiColumnListView.columns.Count - 1, newColumn );
+                            _multiColumnListView.Rebuild();
                         }
                     }
                 });

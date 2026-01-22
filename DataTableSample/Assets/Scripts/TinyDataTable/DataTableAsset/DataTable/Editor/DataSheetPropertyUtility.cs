@@ -77,19 +77,33 @@ namespace TinyDataTable.Editor
             return cellProp;
         }
 
-        public static (List<string> fieldNames, List<string> recordNames ) MakeNameList(SerializedProperty property)
+        public static (List<string> fieldNames, List<string> recordNames ) MakeNameList(
+            SerializedProperty property)
         {
             List<string> fieldNames = new ();
 
             var infos = property.FindPropertyRelative("record.header.fieldInfos");
-            for (int i = 0; i < infos.arraySize; i++)
+            if (infos != null)
             {
-                var info = infos.GetArrayElementAtIndex(i);
-                var obsoleteColum = info.FindPropertyRelative("name");
-                fieldNames.Add(obsoleteColum.stringValue);
+                for (int i = 0; i < infos.arraySize; i++)
+                {
+                    var info = infos.GetArrayElementAtIndex(i);
+                    var nameProp = info.FindPropertyRelative("name");
+                    fieldNames.Add(nameProp.stringValue);
+                }
             }
 
-            List<string> recordNames = new ();
+            List<string> recordNames = new ();            
+            var records = property.FindPropertyRelative("record.recordData");
+            if (records != null)
+            {
+                for (int i = 0; i < records.arraySize; i++)
+                {
+                    var recordInfo = records.GetArrayElementAtIndex(i);
+                    var nameProp = recordInfo.FindPropertyRelative("header.name");                    
+                    recordNames.Add(nameProp.stringValue);                    
+                }
+            }
 
             return (fieldNames, recordNames);
         }
@@ -127,7 +141,17 @@ namespace TinyDataTable.Editor
             recordProp.MoveArrayElement(from, to);
             property.serializedObject.ApplyModifiedProperties();            
         }
-        
+
+        public static void RemoveColum(SerializedProperty property ,int index )
+        {
+            var sheet = DataSheetPropertyUtility.GetValue(property) as DataSheet;
+            if (sheet != null)
+            {
+                sheet.RemoveField( index );
+                property.serializedObject.Update();
+//                property.serializedObject.ApplyModifiedProperties();
+            }
+        }
         
         /// <summary>
         /// SerializedPropertyが参照している実際のインスタンスを取得する
@@ -245,6 +269,34 @@ namespace TinyDataTable.Editor
             }
             
             return true;
+        }        
+        
+        
+        // C#の予約語リスト
+        private static readonly HashSet<string> CSharpKeywords = new HashSet<string>
+        {
+            "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
+            "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
+            "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
+            "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+            "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+            "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed",
+            "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw",
+            "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using",
+            "virtual", "void", "volatile", "while"
+        };        
+        
+        public static bool CheckCSharpSafeName(string name)
+        {
+            if (System.CodeDom.Compiler.CodeGenerator.IsValidLanguageIndependentIdentifier(name) is false)
+            {
+                return false;
+            }
+            else if (CSharpKeywords.Contains(name))
+            {
+                return false;
+            }
+            return true;            
         }        
     }
 }
