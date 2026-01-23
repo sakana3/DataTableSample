@@ -80,45 +80,70 @@ namespace TinyDataTable.Editor
                     "Add Record",
                     (action) =>
                     {
+                        DataSheetPropertyUtility.AddRow(property, index+1);
+                        SetupRows(property, _multiColumnListView);
+                        _multiColumnListView.RefreshItems();                       
                     });
-                evt.menu.AppendAction(
-                    "Obsolete Field",
-                    (action) =>
-                    {
-                        if (_multiColumnListView.selectedIndices.Contains(index))
+                if (index > 0)
+                {
+                    evt.menu.AppendAction(
+                        "Obsolete Field",
+                        (action) =>
                         {
-                            var isObsolete = !DataSheetPropertyUtility.RowObsolete(property, index).boolValue;
-                            foreach (var idx in _multiColumnListView.selectedIndices)
+                            if (_multiColumnListView.selectedIndices.Contains(index))
                             {
-                                var obsolete = DataSheetPropertyUtility.RowObsolete(property, idx);
-                                obsolete.boolValue = isObsolete;
+                                var isObsolete = !DataSheetPropertyUtility.RowObsolete(property, index).boolValue;
+                                foreach (var idx in _multiColumnListView.selectedIndices)
+                                {
+                                    var obsolete = DataSheetPropertyUtility.RowObsolete(property, idx);
+                                    obsolete.boolValue = isObsolete;
+                                }
+
+                                property.serializedObject.ApplyModifiedProperties();
+                                _multiColumnListView.RefreshItems();
                             }
-                        }
-                        property.serializedObject.ApplyModifiedProperties();
-                        _multiColumnListView.RefreshItems();
-                    },
-                    (action) =>
-                    {
-                        var obsolete = DataSheetPropertyUtility.RowObsolete(property, index);
-                        return obsolete.boolValue
-                            ? DropdownMenuAction.Status.Checked
-                            : DropdownMenuAction.Status.Normal;
-                    });
-                evt.menu.AppendAction(
-                    "Remove Record",
-                    (action) =>
-                    {
-                        DataSheetPropertyUtility.RemoveRow(property, index);
-                        _multiColumnListView.ClearSelection();
-                        itemList.RemoveAt(index);
-                        _multiColumnListView.Rebuild();
-                    },
-                    (action) =>
-                    {
-                        var obsolete = DataSheetPropertyUtility.RowObsolete(property, index);
-                        return obsolete.boolValue ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled;
-                    });
-                
+                        },
+                        (action) =>
+                        {
+                            var obsolete = DataSheetPropertyUtility.RowObsolete(property, index);
+                            return obsolete.boolValue
+                                ? DropdownMenuAction.Status.Checked
+                                : DropdownMenuAction.Status.Normal;
+                        });
+                    evt.menu.AppendAction(
+                        "Remove Record",
+                        (action) =>
+                        {
+                            if (_multiColumnListView.selectedIndices.Contains(index))
+                            {
+                                var removes = _multiColumnListView.selectedIndices
+                                    .Where(i => DataSheetPropertyUtility.RowObsolete(property, i).boolValue)
+                                    .OrderByDescending(i => i)
+                                    .ToArray();
+                                if (removes.Length > 0)
+                                {
+                                    DataSheetPropertyUtility.RemoveRows(property, removes);
+                                    foreach (var i in removes)
+                                    {
+                                        rowIDList.RemoveAt(i);
+                                    }
+
+                                    //これをやらないと変更が通知されないことがある？
+                                    _multiColumnListView.itemsSource = rowIDList;
+                                    _multiColumnListView.RefreshItems();
+//                            _multiColumnListView.Rebuild();
+                                }
+                            }
+                        },
+                        (action) =>
+                        {
+                            var obsolete = DataSheetPropertyUtility.RowObsolete(property, index);
+                            return obsolete.boolValue
+                                ? DropdownMenuAction.Status.Normal
+                                : DropdownMenuAction.Status.Disabled;
+                        });
+                }
+
                 evt.menu.AppendSeparator();                
             });
             return manipulator;

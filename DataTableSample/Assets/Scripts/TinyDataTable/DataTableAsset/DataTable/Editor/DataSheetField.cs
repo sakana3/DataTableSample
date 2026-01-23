@@ -14,9 +14,11 @@ namespace TinyDataTable.Editor
         private MultiColumnListView _multiColumnListView;
         private static Color _obsoleteColor = new Color( Color.darkViolet.r,Color.darkViolet.g,Color.darkViolet.b , 0.25f );
         private List<TextField> idTextFieldList = new List<TextField>();
-        private List<string> itemList = new List<string>();
+        private List<int> rowIDList = new List<int>();
+        private List<int> columnIDList = new List<int>();
 
         private ( List<string> fieldNames, List<string> recordNames ) _names = (null,null);
+
         
         public DataSheetField(SerializedProperty property)
         {
@@ -28,6 +30,7 @@ namespace TinyDataTable.Editor
                 this.styleSheets.Add(styleSheet);
             }
 
+  
             Add(new Label("DataSheet"));
             _multiColumnListView = CreateListView(property);
             Add(_multiColumnListView);
@@ -84,11 +87,16 @@ namespace TinyDataTable.Editor
     
             this.TrackSerializedObjectValue(property.serializedObject, (prop) =>
             {
-                if (false)
+                var columnChange = DataSheetPropertyUtility.CheckColums(property, columnIDList);
+                if (columnChange is false)
                 {
-                    this.Clear();
-                    _multiColumnListView = CreateListView(property);
-                    Add( _multiColumnListView );
+                    SetupColumns(property, listView);
+                }
+                var rowChange = DataSheetPropertyUtility.CheckRows(property, rowIDList);
+                if ((columnChange && rowChange) is false)
+                {
+                    SetupRows(property, listView);                    
+                    _multiColumnListView.Rebuild();
                 }
             });
             
@@ -100,18 +108,34 @@ namespace TinyDataTable.Editor
         }
 
 
+        /// <summary>
+        /// 行をセットアップする
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="listView"></param>
         private void SetupRows(SerializedProperty property, MultiColumnListView listView)
         {
-            var names = DataSheetPropertyUtility.MakeNameList(property);
+            rowIDList = DataSheetPropertyUtility.MakeRowIDList(property);
 
-            itemList = names.recordNames;
-
-            listView.itemsSource = itemList;                    
+            listView.itemsSource = rowIDList;                    
         }        
         
+        /// <summary>
+        /// 列をセットアップする
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="listView"></param>
         private void SetupColumns(SerializedProperty property, MultiColumnListView listView)
         {
             //Make Columns
+            columnIDList.Clear();
+            //Clearを呼ぶと何故かコールバックが呼ばれるので潰してから呼ぶ。どう考えてもバグ
+            foreach (var column in listView.columns)
+            {
+                column.makeHeader = null;
+                column.bindCell = null;
+                column.makeCell = null;
+            }
             listView.columns.Clear();
 
             var indexColumn = MakeIndexColumn(property);
@@ -150,8 +174,17 @@ namespace TinyDataTable.Editor
                 {
                     var e = new VisualElement();
                     e.style.flexGrow = 1.0f;
-                    var t = new TextField() { };
-                    e.Add(t);
+                    var textField = new TextField() { };
+                    var inputElement = textField.Q(className: "unity-text-field__input");
+                    if (inputElement != null)
+                    {
+                        inputElement.style.backgroundColor = Color.clear;
+                        inputElement.style.borderTopWidth = 0;
+                        inputElement.style.borderBottomWidth = 0;
+                        inputElement.style.borderLeftWidth = 0;
+                        inputElement.style.borderRightWidth = 0;
+                    }                    
+                    e.Add(textField);
                     return e;
                 },
                 bindCell = (e,iRow) =>
@@ -213,6 +246,10 @@ namespace TinyDataTable.Editor
                         e.Clear();
                         e.Add(label);
                     }
+                    else
+                    {
+                        e.AddManipulator( MakeRowIndexManipulator(property,e,iRow) );
+                    }
                     e.parent.style.justifyContent = Justify.Center;
                 },
                 stretchable = false,
@@ -229,10 +266,11 @@ namespace TinyDataTable.Editor
             {
                 makeHeader = () =>
                 {
-                    var (title,description,isObsolete) = DataSheetPropertyUtility.GetColumn(property,iColum);
+                    var (title,id,description,isObsolete) = DataSheetPropertyUtility.GetColumn(property,iColum);
                     var header = MakeColumHeader(property, title, isObsolete,description) as Label;
                     var manipulator = MakeColumHeaderManipulator(property,header ,iColum);
                     header.AddManipulator( manipulator);
+                    columnIDList.Add( id);
                     return header;
                 },
                 makeCell = () => new VisualElement() { },
@@ -247,6 +285,9 @@ namespace TinyDataTable.Editor
                     var prop = DataSheetPropertyUtility.GetCellProperty(property,iColum,iRow);
                     var propertyField = new PropertyField(prop, string.Empty);
                     propertyField.BindProperty(prop);
+                    propertyField.RegisterValueChangeCallback((evt) =>
+                    {
+                    } );
                     e.Add(propertyField);
                 },
                 unbindCell = (e,i) =>
@@ -305,6 +346,9 @@ namespace TinyDataTable.Editor
             return label;
         }
 
+        /// <summary>
+        /// IDのテキストを更新する
+        /// </summary>
         private void ReloadIDText()
         {
             _names = DataSheetPropertyUtility.MakeNameList(_property);
@@ -314,6 +358,9 @@ namespace TinyDataTable.Editor
             }
         }
 
+        /// <summary>
+        /// 指定フィールドのテキストを更新する
+        /// </summary>
         private void ReloadIDText( TextField textField )
         {
             if (_names.fieldNames == null || _names.recordNames == null)
@@ -328,7 +375,7 @@ namespace TinyDataTable.Editor
             {
                 if ( string.IsNullOrEmpty(textField.value) )
                 {
-                    input.style.color = Color.white;
+                    input.style.color = StyleKeyword.Null;
                     textField.tooltip = "Input ID name";                    
                 }
                 else if (DataSheetPropertyUtility.CheckCSharpSafeName(textField.value) is false)
@@ -344,7 +391,7 @@ namespace TinyDataTable.Editor
                 }
                 else
                 {
-                    input.style.color = Color.white;
+                    input.style.color = StyleKeyword.Null;
                     textField.tooltip = string.Empty;
                 }
             }

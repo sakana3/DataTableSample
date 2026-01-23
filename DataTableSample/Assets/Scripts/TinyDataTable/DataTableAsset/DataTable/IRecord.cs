@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace TinyDataTable
 {
@@ -7,6 +9,7 @@ namespace TinyDataTable
         public RecordHeader Header { get; set; }
         public Type[] GetFieldTypes();
         public IRecordData GetRecord(int rowIndex);
+        public IEnumerable<IRecordData> Records { get; }
         public void Iniaialize(RecordDataHeader newHeader) { }
     }
     

@@ -12,11 +12,7 @@ namespace TinyDataTable
     {
         [SerializeReference] public IRecord record;
 
-        public void Test()
-        {
-            Debug.Log(this.ToString());
-        }
-        
+
 #if UNITY_EDITOR
         public void Initialize( params Type[] typeArgument )
         {
@@ -28,7 +24,7 @@ namespace TinyDataTable
             record.Iniaialize(new RecordDataHeader()
             {
                 name = "Invalid",
-                id = 0,
+                id = MakeNewID(),
                 index = 0,
                 description = string.Empty
             });
@@ -67,7 +63,8 @@ namespace TinyDataTable
             var header = record.Header;
             var newField = new RecordFieldInfo()
             {
-                name = fieldName
+                name = fieldName,
+                id = MakeNewID(),
             };
             header.fieldInfos = header.fieldInfos.Append(newField).ToArray();
             record.Header = header;
@@ -98,14 +95,15 @@ namespace TinyDataTable
                  
                  var json = UnityEditor.EditorJsonUtility.ToJson(record,true);
                  //Jsonの中身を新しいフィールドに書き換える
+                 //TODO : 単なる置き換えなので後でちゃんとJSONをパースするようにする。
                  for (int i = index; i < oldTypes.Length; i++)
                  {
-                     json = json.Replace($"\"Field{i}\"", $"\"___Field{i}\"");
+                     json = json.Replace($"\"Field{i}\":", $"\"___Field{i}\":");
                  }
                  for ( int i = index ; i < oldTypes.Length ; i++)
                  {
                      var t = i -1 >= 0 ? $"Field{i -1}" : "FieldX";
-                     json = json.Replace($"\"___Field{i}\"", $"\"{t}\"");
+                     json = json.Replace($"\"___Field{i}\":", $"\"{t}\":");
                  }
                  record = MakeRecord(newTypes);
                  UnityEditor.EditorJsonUtility.FromJsonOverwrite(json, record);                 
@@ -115,6 +113,9 @@ namespace TinyDataTable
              return false;
         }
 
+        /// <summary>
+        /// ヘッダーと定義に差があった場合いい感じにそろえる
+        /// </summary>
         public void FitField()
         {
             var filedCount = record.Header.fieldInfos.Length;
@@ -127,6 +128,21 @@ namespace TinyDataTable
             }
         }
 
+        /// <summary>
+        /// 新規idを作成
+        /// </summary>
+        private int MakeNewID()
+        {
+            var idCandidates = System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, int.MaxValue);
+            while ( record.Header.fieldInfos.Any(t => t.id == idCandidates) ||
+                    record.Records.Any( t => t.Header.id == idCandidates )
+                  )
+            {
+                idCandidates = System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, int.MaxValue);
+            }
+
+            return idCandidates;
+        }
 #endif        
     }
 }

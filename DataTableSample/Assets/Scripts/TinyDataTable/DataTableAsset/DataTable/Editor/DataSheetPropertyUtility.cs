@@ -10,15 +10,53 @@ namespace TinyDataTable.Editor
 {
     internal static class DataSheetPropertyUtility
     {
-        public static (string name, string description, bool obsolete) GetColumn(SerializedProperty property, int index)
+        //コラムが変化したかチェック
+        public static bool CheckColums(SerializedProperty property,IReadOnlyList<int> columIDs)
         {
             var header = property.FindPropertyRelative("record.header.fieldInfos");
-            var info = header.GetArrayElementAtIndex(index);
+            if (header.arraySize != columIDs.Count)
+            {
+                return false;
+            }
+            foreach ( var (id,idx) in columIDs.Select( (name,idx) => (name,idx) ))
+            {
+                var info = header.GetArrayElementAtIndex(idx);
+                if (info.FindPropertyRelative("id").intValue != id)
+                {
+                    return false;
+                };
+            }
+            return true;
+        }
+
+        //Rowが変化したかチェック
+        public static bool CheckRows(SerializedProperty property,IReadOnlyList<int> rowIDs)
+        {
+            var recordHeader = property.FindPropertyRelative("record.recordData");
+            if (recordHeader.arraySize != rowIDs.Count)
+            {
+                return false;
+            }
+            foreach ( var (id,idx) in rowIDs.Select( (name,idx) => (name,idx) ))
+            {
+                var recordInfo = recordHeader.GetArrayElementAtIndex(idx);
+                if (recordInfo.FindPropertyRelative("header.id").intValue != id)
+                {
+                    return false;
+                };
+            }
+            return true;
+        }
+        
+        public static (string name,int id, string description, bool obsolete) GetColumn(SerializedProperty property, int index)
+        {
+            var info = property.FindPropertyRelative($"record.header.fieldInfos.Array.data[{index}]");
             var name = info.FindPropertyRelative("name");
+            var id = info.FindPropertyRelative("id");
             var description = info.FindPropertyRelative("description");
             var obsolete = info.FindPropertyRelative("obsolete");
 
-            return (name.stringValue, description.stringValue, obsolete.boolValue);
+            return (name.stringValue, id.intValue, description.stringValue, obsolete.boolValue);
         }
 
         
@@ -33,18 +71,13 @@ namespace TinyDataTable.Editor
         
         public static SerializedProperty RowObsolete(SerializedProperty property,int iRow)
         {
-            var recordHeader = property.FindPropertyRelative("record.recordData");
-            var recordInfo = recordHeader.GetArrayElementAtIndex(iRow);
-            var obsoleteRow = recordInfo.FindPropertyRelative("header.obsolete");
-
+            var obsoleteRow = property.FindPropertyRelative($"record.recordData.Array.data[{iRow}].header.obsolete");
             return obsoleteRow;
         }
 
         public static SerializedProperty GetRowNameProperty(SerializedProperty property, int iRow)
         {
-            var recordHeader = property.FindPropertyRelative("record.recordData");
-            var recordInfo = recordHeader.GetArrayElementAtIndex(iRow);
-            var nameProp = recordInfo.FindPropertyRelative("header.name");
+            var nameProp = property.FindPropertyRelative($"record.recordData.Array.data[{iRow}].header.name");            
             return nameProp;
         }
         
@@ -77,6 +110,23 @@ namespace TinyDataTable.Editor
             return cellProp;
         }
 
+
+        public static List<int> MakeRowIDList(SerializedProperty property)
+        {
+            List<int> idList = new ();
+            var records = property.FindPropertyRelative("record.recordData");
+            if (records != null)
+            {
+                for (int i = 0; i < records.arraySize; i++)
+                {
+                    var recordInfo = records.GetArrayElementAtIndex(i);
+                    var idProp = recordInfo.FindPropertyRelative("header.id");
+                    idList.Add(idProp.intValue);                    
+                }
+            }            
+            return idList;
+        }
+        
         public static (List<string> fieldNames, List<string> recordNames ) MakeNameList(
             SerializedProperty property)
         {
@@ -134,6 +184,16 @@ namespace TinyDataTable.Editor
             recordProp.DeleteArrayElementAtIndex(index);
             property.serializedObject.ApplyModifiedProperties();            
         }
+        
+        public static void RemoveRows( SerializedProperty property, IEnumerable<int> indexs )
+        {
+            var recordProp = property.FindPropertyRelative("record.recordData");
+            foreach (var index in indexs.OrderByDescending(i=>i)　)
+            {
+                recordProp.DeleteArrayElementAtIndex(index);
+            }
+            property.serializedObject.ApplyModifiedProperties();            
+        }        
 
         public static void MoveRow( SerializedProperty property, int from, int to)
         {
@@ -218,22 +278,17 @@ namespace TinyDataTable.Editor
         private static int MakeNewID(SerializedProperty property)
         {
             var rowProp = property.FindPropertyRelative("record.header.fieldInfos");
-            var headerProps = Enumerable.Range(0, rowProp.arraySize)
-                .Select(i => rowProp.GetArrayElementAtIndex(i));
-
-            var idCandidates = System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, int.MaxValue);
-            var idEnumrator = headerProps
-                .Select(prop => prop.FindPropertyRelative("id").intValue);
-            while (idEnumrator.Any(i => i == idCandidates) && idCandidates > 0)
-            {
-                idCandidates = System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, int.MaxValue);
-            }
+            var rowEnumrator = Enumerable.Range(0, rowProp.arraySize)
+                    .Select(i => rowProp.GetArrayElementAtIndex(i))
+                    .Select(prop => prop.FindPropertyRelative("id").intValue);
 
             var columns = property.FindPropertyRelative("record.recordData");
             var colEnumtaror = Enumerable
                 .Range(0, columns.arraySize)
-                .Select(i => columns.GetArrayElementAtIndex(i).FindPropertyRelative("header.id"));
-            while (colEnumtaror.Any(t => t.intValue == idCandidates))
+                .Select(i => columns.GetArrayElementAtIndex(i).FindPropertyRelative("header.id").intValue);
+
+            var idCandidates = System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, int.MaxValue);
+            while (colEnumtaror.Concat(rowEnumrator).Any(t => t == idCandidates))
             {
                 idCandidates = System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, int.MaxValue);
             }    
@@ -269,8 +324,7 @@ namespace TinyDataTable.Editor
             }
             
             return true;
-        }        
-        
+        }
         
         // C#の予約語リスト
         private static readonly HashSet<string> CSharpKeywords = new HashSet<string>
