@@ -13,7 +13,6 @@ namespace TinyDataTable.Editor
     
     public static class SaveDataTable
     {
-        
         private const string KeyIsGenerating = "TinyDataTable_IsGenerating";
         private const string CompilError = "TinyDataTable_CompilError";
         private const string ScriptFilePath = "TinyDataTableScript_FilePath";        
@@ -64,6 +63,7 @@ namespace TinyDataTable.Editor
                 namespaceName = newNamespace;
             }
 
+/*
             var text = TinyDataTable.Editor.ExportDataTableToCSharp.Export(
                 dataTableAsset,
                 scriptName,
@@ -71,9 +71,16 @@ namespace TinyDataTable.Editor
                 assetpath,
                 address
                 );
+*/            
+            var text = TinyDataTable.Editor.ExportDataSheetToCSharp.Export(
+                dataTableAsset,
+                scriptName,
+                namespaceName,
+                assetpath,
+                address
+            );            
 
             SaveScript(fullPath, text);
-            
 
             // アセットデータベースを更新してUnityに認識させる
             AssetDatabase.Refresh();

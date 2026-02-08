@@ -287,6 +287,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
   fruit:
     _value: 714369421
+  Table:
+    _value: 1147330172
 --- !u!4 &354156727
 Transform:
   m_ObjectHideFlags: 0

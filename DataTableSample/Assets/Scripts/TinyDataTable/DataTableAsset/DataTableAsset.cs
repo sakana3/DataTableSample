@@ -32,19 +32,10 @@ namespace TinyDataTable
         public string[] Tags => tags;
 
         //DataTable
-        [SerializeField] private DataSheet dataTable;
+        [SerializeField] private DataSheet dataSheet;
 
-        [ContextMenu("AddRecordInt")]
-        void AddRecordInt()
-        {
-            dataTable.AddField(typeof(int),"Num",false);
-        }
-        
-        [ContextMenu("AddRecordString")]
-        void AddRecordString()
-        {
-            dataTable.AddField(typeof(string),"Str",false);
-        }        
+        /// GetData
+        public DataSheet DataSheet => dataSheet;       
         
         //Data
         [SerializeField] private DataTableRow data;
@@ -75,8 +66,8 @@ namespace TinyDataTable
 
         private void Reset()
         {
-            dataTable = new DataSheet();
-            dataTable.Initialize();
+            dataSheet = new DataSheet();
+            dataSheet.Initialize();
         }
     }
 }

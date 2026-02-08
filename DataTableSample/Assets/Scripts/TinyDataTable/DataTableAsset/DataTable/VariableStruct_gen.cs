@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace TinyDataTable
 {
-    public static class RecordGenericType
+    public static partial class VariableStructBuilder
     {
         public static int TypeCount => 32;
 
@@ -15,47 +15,48 @@ namespace TinyDataTable
         {
             Type type = numField switch
             {
-                0 => typeof(RecordEmpty),
-                1 => typeof(Record<>),
-                2 => typeof(Record<,>),
-                3 => typeof(Record<,,>),
-                4 => typeof(Record<,,,>),
-                5 => typeof(Record<,,,,>),
-                6 => typeof(Record<,,,,,>),
-                7 => typeof(Record<,,,,,,>),
-                8 => typeof(Record<,,,,,,,>),
-                9 => typeof(Record<,,,,,,,,>),
-                10 => typeof(Record<,,,,,,,,,>),
-                11 => typeof(Record<,,,,,,,,,,>),
-                12 => typeof(Record<,,,,,,,,,,,>),
-                13 => typeof(Record<,,,,,,,,,,,,>),
-                14 => typeof(Record<,,,,,,,,,,,,,>),
-                15 => typeof(Record<,,,,,,,,,,,,,,>),
-                16 => typeof(Record<,,,,,,,,,,,,,,,>),
-                17 => typeof(Record<,,,,,,,,,,,,,,,,>),
-                18 => typeof(Record<,,,,,,,,,,,,,,,,,>),
-                19 => typeof(Record<,,,,,,,,,,,,,,,,,,>),
-                20 => typeof(Record<,,,,,,,,,,,,,,,,,,,>),
-                21 => typeof(Record<,,,,,,,,,,,,,,,,,,,,>),
-                22 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,>),
-                23 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,>),
-                24 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,>),
-                25 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,>),
-                26 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,>),
-                27 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,>),
-                28 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
-                29 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
-                30 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
-                31 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
-                32 => typeof(Record<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                0 => typeof(VariableStruct),
+                1 => typeof(VariableStruct<>),
+                2 => typeof(VariableStruct<,>),
+                3 => typeof(VariableStruct<,,>),
+                4 => typeof(VariableStruct<,,,>),
+                5 => typeof(VariableStruct<,,,,>),
+                6 => typeof(VariableStruct<,,,,,>),
+                7 => typeof(VariableStruct<,,,,,,>),
+                8 => typeof(VariableStruct<,,,,,,,>),
+                9 => typeof(VariableStruct<,,,,,,,,>),
+                10 => typeof(VariableStruct<,,,,,,,,,>),
+                11 => typeof(VariableStruct<,,,,,,,,,,>),
+                12 => typeof(VariableStruct<,,,,,,,,,,,>),
+                13 => typeof(VariableStruct<,,,,,,,,,,,,>),
+                14 => typeof(VariableStruct<,,,,,,,,,,,,,>),
+                15 => typeof(VariableStruct<,,,,,,,,,,,,,,>),
+                16 => typeof(VariableStruct<,,,,,,,,,,,,,,,>),
+                17 => typeof(VariableStruct<,,,,,,,,,,,,,,,,>),
+                18 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,>),
+                19 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,>),
+                20 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,>),
+                21 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,>),
+                22 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,>),
+                23 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,>),
+                24 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,>),
+                25 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,,>),
+                26 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                27 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                28 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                29 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                30 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                31 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
+                32 => typeof(VariableStruct<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>),
                 _ => throw new IndexOutOfRangeException(),
             };
             return type;
         }
     }
 
+#region VariableStructs
     [Serializable]
-    public struct RecordEmpty : IRecord
+    public struct VariableStruct : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -75,7 +76,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0> : IRecord
+    public struct VariableStruct<T0> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -95,7 +96,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1> : IRecord
+    public struct VariableStruct<T0,T1> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -116,7 +117,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2> : IRecord
+    public struct VariableStruct<T0,T1,T2> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -138,7 +139,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -161,7 +162,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -185,7 +186,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -210,7 +211,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -236,7 +237,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -263,7 +264,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -291,7 +292,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -320,7 +321,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -350,7 +351,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -381,7 +382,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -413,7 +414,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -446,7 +447,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -480,7 +481,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -515,7 +516,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -551,7 +552,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -588,7 +589,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -626,7 +627,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -665,7 +666,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -705,7 +706,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -746,7 +747,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -788,7 +789,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -831,7 +832,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -875,7 +876,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -920,7 +921,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -966,7 +967,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -1013,7 +1014,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -1061,7 +1062,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -1110,7 +1111,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29,T30> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29,T30> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -1160,7 +1161,7 @@ namespace TinyDataTable
     }
 
     [Serializable]
-    public struct Record<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29,T30,T31> : IRecord
+    public struct VariableStruct<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22,T23,T24,T25,T26,T27,T28,T29,T30,T31> : IVariableStruct
     {
         public RecordHeader header;
         public RecordData[] recordData;
@@ -1209,4 +1210,5 @@ namespace TinyDataTable
             public T31 Field31;
         }
     }
+#endregion //VariableStructs 
 }

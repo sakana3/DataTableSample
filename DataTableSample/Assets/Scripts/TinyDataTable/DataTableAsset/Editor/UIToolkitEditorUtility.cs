@@ -30,6 +30,7 @@ namespace TinyDataTable.Editor
             // 2. ラベル
             var label = new Label(labelText);
             label.AddToClassList("unity-base-field__label");
+
             container.Add(label);
 
             element.style.flexGrow = 1; // 右側いっぱいに広げる

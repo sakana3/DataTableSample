@@ -140,6 +140,30 @@ namespace TinyDataTable.Editor
 
         private VisualElement MakeTypeSelectorPopup()
         {
+            var gui = new IMGUIContainer();
+            gui.onGUIHandler += () =>
+            {
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("Field type", GUILayout.Width(120));
+                    Rect rect = EditorGUILayout.GetControlRect();
+                    rect.width -= 32;
+                    if (EditorGUI.DropdownButton(rect, new GUIContent(PropertyType.Name), FocusType.Keyboard))
+                    {
+                        var state = new AdvancedDropdownState();                        
+                        var dropdown = new TypeSelectorDropdown(state, types, (selectedType) => 
+                        {
+                            PropertyType = selectedType;
+                        });
+                        dropdown.Show(rect);                        
+                    }
+                }
+            };
+            return gui;
+        }
+
+        private VisualElement MakeTypeSelectorPopup_()
+        {
             var popup = UIToolkitEditorUtility.CreatePopupButton(PropertyType.Name);
             var field = UIToolkitEditorUtility.CreateLabeledVisualElement("Field Type",popup.button);
 

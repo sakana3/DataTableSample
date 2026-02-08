@@ -100,6 +100,11 @@ namespace TinyDataTable.Editor
             var infos = property.FindPropertyRelative("record.recordData");
             return infos == null ? 0 : infos.arraySize;
         }
+
+        public static SerializedProperty GetRowArrayProp(SerializedProperty property)
+        {
+            return property.FindPropertyRelative("record.recordData");
+        }
         
         public static SerializedProperty GetCellProperty(SerializedProperty property, int iColum, int iRow)
         {
@@ -126,6 +131,22 @@ namespace TinyDataTable.Editor
             }            
             return idList;
         }
+        
+        public static List<int> MakeColumIDList(SerializedProperty property)
+        {
+            List<int> idList = new ();
+            var infos = property.FindPropertyRelative("record.header.fieldInfos");
+            if (infos != null)
+            {
+                for (int i = 0; i < infos.arraySize; i++)
+                {
+                    var info = infos.GetArrayElementAtIndex(i);
+                    var idProp = info.FindPropertyRelative("id");
+                    idList.Add(idProp.intValue);                    
+                }
+            }            
+            return idList;
+        }        
         
         public static (List<string> fieldNames, List<string> recordNames ) MakeNameList(
             SerializedProperty property)
@@ -158,6 +179,44 @@ namespace TinyDataTable.Editor
             return (fieldNames, recordNames);
         }
 
+        public static List<int> MakeFieldOrderList(SerializedProperty property)
+        {
+            List<int> fieldOrderList = new ();
+            var infos = property.FindPropertyRelative("record.header.fieldInfos");
+            if (infos != null)
+            {
+                for (int i = 0; i < infos.arraySize; i++)
+                {
+                    var info = infos.GetArrayElementAtIndex(i);
+                    var indexProp = info.FindPropertyRelative("index");
+                    fieldOrderList.Add(indexProp.intValue);
+                }
+            }
+            return fieldOrderList
+                .Select( (index,i) => (index,i) )
+                .OrderBy( f => f.index )
+                .Select( f => f.i )
+                .ToList();
+        }
+
+        public static void ChangeFieldOrderList(SerializedProperty property,List<string> newFields )
+        {
+            var infos = property.FindPropertyRelative("record.header.fieldInfos");
+            if (infos != null)
+            {
+                for (int i = 0; i < infos.arraySize; i++)
+                {
+                    var info = infos.GetArrayElementAtIndex(i);                    
+                    var nameProp = info.FindPropertyRelative("name");
+                    
+                    var indexProp = info.FindPropertyRelative("index");
+                    indexProp.intValue = newFields.IndexOf(nameProp.stringValue);        
+                }
+            }
+
+            property.serializedObject.ApplyModifiedProperties();            
+        }
+
         public static void AddRow( SerializedProperty property ,int index = -1)
         {
             var recordProp = property.FindPropertyRelative("record.recordData");
@@ -169,6 +228,8 @@ namespace TinyDataTable.Editor
             newProp.FindPropertyRelative("header.id").intValue = MakeNewID(property);
             var nameProp = newProp.FindPropertyRelative("header.name");
             nameProp.stringValue = $"record_{index-1:0000}";
+            var indexProp = newProp.FindPropertyRelative("header.index");
+            indexProp.intValue = recordProp.arraySize;
 
             while (CheckName(property, nameProp) == false)
             {
@@ -193,7 +254,40 @@ namespace TinyDataTable.Editor
                 recordProp.DeleteArrayElementAtIndex(index);
             }
             property.serializedObject.ApplyModifiedProperties();            
-        }        
+        }
+
+        public static void ResizeRow(SerializedProperty property, uint size)
+        {
+            var recordProp = property.FindPropertyRelative("record.recordData");
+            if (recordProp.arraySize == size)
+            {
+                return;
+            }
+            
+            while (recordProp.arraySize != size)
+            {
+                if (recordProp.arraySize < size)
+                {
+                    var index = recordProp.arraySize;
+                    recordProp.InsertArrayElementAtIndex(index);
+                    var newProp = recordProp.GetArrayElementAtIndex(index);
+            
+                    newProp.FindPropertyRelative("header.id").intValue = MakeNewID(property);
+                    var nameProp = newProp.FindPropertyRelative("header.name");
+                    nameProp.stringValue = $"record_{index-1:0000}";
+
+                    while (CheckName(property, nameProp) == false)
+                    {
+                        nameProp.stringValue += "_";
+                    }                    
+                }
+                else
+                {
+                    recordProp.DeleteArrayElementAtIndex(recordProp.arraySize-1);
+                }
+            }
+            property.serializedObject.ApplyModifiedProperties();            
+        }
 
         public static void MoveRow( SerializedProperty property, int from, int to)
         {

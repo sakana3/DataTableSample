@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TinyDataTable.Editor
 {
-    public static partial class ExportDataTableToCSharp
+    public static partial class ExportRecordToCSharp
     {
         public static string MakeRecordScript( int tableNum )
         {
@@ -22,7 +22,7 @@ namespace TinyDataTable.Editor
             using (cb.BeginNamespace("TinyDataTable"))
             {
                 //Type Get
-                using (cb.BeginClass("RecordGenericType",accessModifier:"public static"))
+                using (cb.BeginClass("VariableStructBuilder",accessModifier:"public static partial"))
                 {
                     cb.AddCode($"public static int TypeCount => {tableNum}");
                     cb.AppendLine();
@@ -30,10 +30,10 @@ namespace TinyDataTable.Editor
                     {
                         using (cb.BeginBlock("Type type = numField switch").Footer(";"))
                         {
-                            cb.AppendLine($"0 => typeof(RecordEmpty),");
+                            cb.AppendLine($"0 => typeof(VariableStruct),");
                             for (int i = 0; i < tableNum; i++)
                             {
-                                cb.AppendLine($"{i+1} => typeof(Record<{new string(',', i)}>),");
+                                cb.AppendLine($"{i+1} => typeof(VariableStruct<{new string(',', i)}>),");
                             }
                             cb.AppendLine($"_ => throw new IndexOutOfRangeException(),");                            
                         }
@@ -41,57 +41,59 @@ namespace TinyDataTable.Editor
                     }
                 }
                 
-                
                 cb.AppendLine();
-                //Empty Record
-                cb.AddAttribute("Serializable");
-                using (cb.BeginStruct("RecordEmpty", inherit: "IRecord"))
+                using( cb.BeginRegion("VariableStructs"))
                 {
-                    cb.AddCode($"public RecordHeader header");
-                    cb.AddCode($"public RecordData[] recordData");
-                    cb.AppendLine();
-                    cb.AppendLine("public RecordHeader Header { set => header = value; get => header; }");
-                    cb.AddCode($"public Type[] GetFieldTypes() => Type.EmptyTypes");
-                    cb.AddCode($"public IEnumerable<IRecordData> Records => recordData == null ? Array.Empty<IRecordData>() : recordData.OfType<IRecordData>()");
-                    cb.AddCode($"public IRecordData GetRecord(int rowIndex) => recordData[rowIndex]");           
-                    cb.AppendLine("public void Iniaialize( RecordDataHeader newHeader ) { recordData = new RecordData[1] { new RecordData() { header = newHeader } }; }");           
-                    cb.AppendLine();
-                    cb.AppendLine("[Serializable]");
-                    using (cb.BeginStruct("RecordData", inherit: "IRecordData"))
-                    {
-                        cb.AddCode("public RecordDataHeader header");
-                        cb.AppendLine("public RecordDataHeader Header {set => header = value; get => header;}");
-                    }
-                }
-
-                //Generic Record
-                for (int i = 1; i < tableNum + 1; i++)
-                {
-                    cb.AppendLine();
-                    cb.AppendLine("[Serializable]");
-                    var range = Enumerable.Range(0, i);
-                    string T = string.Join(",", range.Select(t => $"T{t}").ToArray());
-                    using (cb.BeginStruct($"Record<{T}>", inherit: "IRecord"))
+                    //Empty Record
+                    cb.AddAttribute("Serializable");
+                    using (cb.BeginStruct("VariableStruct", inherit: "IVariableStruct"))
                     {
                         cb.AddCode($"public RecordHeader header");
                         cb.AddCode($"public RecordData[] recordData");
-                        string types = string.Join(",", range.Select(t => $"typeof(T{t})").ToArray());
-                        cb.AddCode("private static Type[] _fieldTypes = new []{" + types + "}");
-
+                        cb.AppendLine();
                         cb.AppendLine("public RecordHeader Header { set => header = value; get => header; }");
-                        cb.AddCode($"public Type[] GetFieldTypes() => _fieldTypes");           
+                        cb.AddCode($"public Type[] GetFieldTypes() => Type.EmptyTypes");
                         cb.AddCode($"public IEnumerable<IRecordData> Records => recordData == null ? Array.Empty<IRecordData>() : recordData.OfType<IRecordData>()");
                         cb.AddCode($"public IRecordData GetRecord(int rowIndex) => recordData[rowIndex]");           
-                        
+                        cb.AppendLine("public void Iniaialize( RecordDataHeader newHeader ) { recordData = new RecordData[1] { new RecordData() { header = newHeader } }; }");           
                         cb.AppendLine();
-                        cb.AppendLine("[Serializable]");                        
-                        using (cb.BeginStruct($"RecordData", inherit: "IRecordData"))
+                        cb.AppendLine("[Serializable]");
+                        using (cb.BeginStruct("RecordData", inherit: "IRecordData"))
                         {
                             cb.AddCode("public RecordDataHeader header");
                             cb.AppendLine("public RecordDataHeader Header {set => header = value; get => header;}");
-                            for (int t = 0; t < i; t++)
+                        }
+                    }
+
+                    //Generic Record
+                    for (int i = 1; i < tableNum + 1; i++)
+                    {
+                        cb.AppendLine();
+                        cb.AppendLine("[Serializable]");
+                        var range = Enumerable.Range(0, i);
+                        string T = string.Join(",", range.Select(t => $"T{t}").ToArray());
+                        using (cb.BeginStruct($"VariableStruct<{T}>", inherit: "IVariableStruct"))
+                        {
+                            cb.AddCode($"public RecordHeader header");
+                            cb.AddCode($"public RecordData[] recordData");
+                            string types = string.Join(",", range.Select(t => $"typeof(T{t})").ToArray());
+                            cb.AddCode("private static Type[] _fieldTypes = new []{" + types + "}");
+
+                            cb.AppendLine("public RecordHeader Header { set => header = value; get => header; }");
+                            cb.AddCode($"public Type[] GetFieldTypes() => _fieldTypes");           
+                            cb.AddCode($"public IEnumerable<IRecordData> Records => recordData == null ? Array.Empty<IRecordData>() : recordData.OfType<IRecordData>()");
+                            cb.AddCode($"public IRecordData GetRecord(int rowIndex) => recordData[rowIndex]");           
+                            
+                            cb.AppendLine();
+                            cb.AppendLine("[Serializable]");                        
+                            using (cb.BeginStruct($"RecordData", inherit: "IRecordData"))
                             {
-                                cb.AddCode($"public T{t} Field{t}");
+                                cb.AddCode("public RecordDataHeader header");
+                                cb.AppendLine("public RecordDataHeader Header {set => header = value; get => header;}");
+                                for (int t = 0; t < i; t++)
+                                {
+                                    cb.AddCode($"public T{t} Field{t}");
+                                }
                             }
                         }
                     }

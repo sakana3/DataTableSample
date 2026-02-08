@@ -11,7 +11,6 @@ namespace TinyDataTable.Editor
     [CustomPropertyDrawer(typeof(DataSheet))]
     public class DataSheetPropertyDrawer : PropertyDrawer
     {
-        
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             var root = new VisualElement();

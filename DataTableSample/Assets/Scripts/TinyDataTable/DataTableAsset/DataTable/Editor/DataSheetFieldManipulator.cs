@@ -46,6 +46,8 @@ namespace TinyDataTable.Editor
                         (action) =>
                         {
                             DataSheetPropertyUtility.RemoveColum(property, index);
+                            fieldOrderList = DataSheetPropertyUtility.MakeFieldOrderList(_property);   
+                            
                             //消したはずのセルのコールバックが走ってしまうので一旦nullにする
                             foreach (var column in _multiColumnListView.columns)
                             {
@@ -68,6 +70,7 @@ namespace TinyDataTable.Editor
             return manipulator;
         }
 
+        
         private ContextualMenuManipulator MakeRowIndexManipulator(
             SerializedProperty property,
             VisualElement element,
@@ -87,13 +90,13 @@ namespace TinyDataTable.Editor
                 if (index > 0)
                 {
                     evt.menu.AppendAction(
-                        "Obsolete Field",
+                        "Obsolete Record",
                         (action) =>
                         {
                             if (_multiColumnListView.selectedIndices.Contains(index))
                             {
                                 var isObsolete = !DataSheetPropertyUtility.RowObsolete(property, index).boolValue;
-                                foreach (var idx in _multiColumnListView.selectedIndices)
+                                foreach (var idx in _multiColumnListView.selectedIndices.Where(i=>i>0))
                                 {
                                     var obsolete = DataSheetPropertyUtility.RowObsolete(property, idx);
                                     obsolete.boolValue = isObsolete;
@@ -116,23 +119,8 @@ namespace TinyDataTable.Editor
                         {
                             if (_multiColumnListView.selectedIndices.Contains(index))
                             {
-                                var removes = _multiColumnListView.selectedIndices
-                                    .Where(i => DataSheetPropertyUtility.RowObsolete(property, i).boolValue)
-                                    .OrderByDescending(i => i)
-                                    .ToArray();
-                                if (removes.Length > 0)
-                                {
-                                    DataSheetPropertyUtility.RemoveRows(property, removes);
-                                    foreach (var i in removes)
-                                    {
-                                        rowIDList.RemoveAt(i);
-                                    }
-
-                                    //これをやらないと変更が通知されないことがある？
-                                    _multiColumnListView.itemsSource = rowIDList;
-                                    _multiColumnListView.RefreshItems();
-//                            _multiColumnListView.Rebuild();
-                                }
+                                RemoveRow(property, _multiColumnListView.selectedIndices.ToArray());
+                                _multiColumnListView.ClearSelection();
                             }
                         },
                         (action) =>
@@ -147,6 +135,35 @@ namespace TinyDataTable.Editor
                 evt.menu.AppendSeparator();                
             });
             return manipulator;
+        }
+
+        private ContextualMenuManipulator MakeAddFieldManipulator(SerializedProperty property,VisualElement element)
+        {
+            var manipulator = new ContextualMenuManipulator((evt) =>
+            {
+                evt.menu.AppendAction("Chage Field Order", (action) =>
+                {
+                    var rect = element.worldBound;
+
+                    var nameList = DataSheetPropertyUtility.MakeNameList(property);
+                    var orderList = DataSheetPropertyUtility.MakeFieldOrderList(property);
+
+                    var fieldNames = orderList
+                        .Select(i => nameList.fieldNames[i])
+                        .ToList();
+                    
+                    DataSheetFieldOrderPopup.Show(fieldNames,OrderChange,rect);
+                });
+                evt.menu.AppendSeparator();
+            });
+            return manipulator;                
+        }
+
+        private void OrderChange(List<string> newOrder)
+        {
+            DataSheetPropertyUtility.ChangeFieldOrderList(_property, newOrder);
+            fieldOrderList = DataSheetPropertyUtility.MakeFieldOrderList(_property);        
+            _multiColumnListView.Rebuild();
         }
 
         private void OpenAddFieldPopup(SerializedProperty property, int index, Vector2 mousePos)
@@ -172,11 +189,13 @@ namespace TinyDataTable.Editor
                             sheet.AddField(type, fieldName, isArray);
                             property.serializedObject.Update();
                             property.serializedObject.ApplyModifiedProperties();
-
+                            
+                            fieldOrderList = DataSheetPropertyUtility.MakeFieldOrderList(_property);   
+                            
                             var newIndex = sheet.record.Header.fieldInfos.Length;
                             var newColumn = MakePropertyColumn(property, sheet.record.Header.fieldInfos.Length-1);
                             _multiColumnListView.columns.Insert( _multiColumnListView.columns.Count - 1, newColumn );
-                            _multiColumnListView.Rebuild();
+                            _multiColumnListView.RefreshItems();
                         }
                     }
                 });
