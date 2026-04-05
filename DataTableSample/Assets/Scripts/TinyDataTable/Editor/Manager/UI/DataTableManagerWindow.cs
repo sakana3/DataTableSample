@@ -63,35 +63,10 @@ namespace TinyDataTable.Editor
             }
         }
 
-        public void CreateManager(DataTableManager.DataType dataType,string rootPath, string nameSpace)
+        public void CreateManager(DataTableManager manager)
         {
-            dataTableManager = ScriptableObject.CreateInstance<DataTableManager>();
-            dataTableManager.dataType = dataType;
-            dataTableManager.RootPath = rootPath;
-            dataTableManager.DefaultNamespace = nameSpace;
-
-            MakeDirectory(rootPath, "Editor");
-            MakeDirectory(rootPath, "Resources");
-            MakeDirectory(rootPath, "Scripts\\ID");
-            
-            UnityEditor.AssetDatabase.CreateAsset(dataTableManager, $"Assets/{rootPath}\\Editor\\TinyDataTableManager.asset");
-            UnityEditor.AssetDatabase.SaveAssets();            
-            
+            this.dataTableManager = manager;
             CreateGUI();
-        }
-
-
-        private void MakeDirectory(string rootPath, string subPath)
-        {
-            var directory = $"Assets/{rootPath}\\{subPath}";
-            
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            
-                // Unity側にフォルダが作成されたことを認識させる
-                AssetDatabase.Refresh();
-            }
         }
     }
 }

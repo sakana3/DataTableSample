@@ -18,5 +18,23 @@ namespace TinyDataTable.Editor
         public string RootPath;
         [SerializeField]
         public string DefaultNamespace;
+
+        public string TablesPath => $"Assets\\{RootPath}\\Tables";
+        public string ScriptsPath => $"Assets\\{RootPath}\\Scripts";
+        
+        [SerializeField] public SerializableTree<DataTableAsset> Tree;
+        
+        public void MakeDirectory( string subPath )
+        {
+            var directory = $"Assets/{RootPath}\\{subPath}";
+            
+            if (!System.IO.Directory.Exists(directory))
+            {
+                System.IO.Directory.CreateDirectory(directory);
+            
+                // Unity側にフォルダが作成されたことを認識させる
+                AssetDatabase.Refresh();
+            }
+        }
     }
 }

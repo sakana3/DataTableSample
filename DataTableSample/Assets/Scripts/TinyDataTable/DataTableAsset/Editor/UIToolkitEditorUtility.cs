@@ -85,6 +85,8 @@ namespace TinyDataTable.Editor
         
         public static bool CheckCanUseFieldName(string name)
         {
+            if(string.IsNullOrEmpty(name)) return false;
+            
             if (System.CodeDom.Compiler.CodeGenerator.IsValidLanguageIndependentIdentifier(name) is false)
             {
                 return false;

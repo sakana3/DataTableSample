@@ -1,7 +1,8 @@
 using UnityEngine.UIElements;
 using UnityEditor;
 using System;
-using UnityEditor.UIElements;
+using UnityEngine;
+using System.IO;
 
 namespace TinyDataTable.Editor
 {
@@ -13,7 +14,7 @@ namespace TinyDataTable.Editor
         private TextField textInput2;
         private DataTableManager.DataType dataType = DataTableManager.DataType.Resources;
         
-        public Action<DataTableManager.DataType,string,string> OnClickStart;
+        public Action<DataTableManager> OnClickStart;
         
         public DataTableManagerWelcome(DataTableManager manager)
         {
@@ -91,7 +92,36 @@ namespace TinyDataTable.Editor
 
         private void onClickStart()
         {
-            OnClickStart?.Invoke(dataType,textInput1.value,textInput2.value);
+            var dataTableManager = ScriptableObject.CreateInstance<DataTableManager>();
+            var rootPath = textInput1.value;
+            dataTableManager.dataType = dataType;
+            dataTableManager.RootPath = rootPath;
+            dataTableManager.DefaultNamespace = textInput2.value;
+
+            MakeDirectory(rootPath, "Editor");
+            MakeDirectory(rootPath, "Tables");
+            MakeDirectory(rootPath, "Resources");
+            MakeDirectory(rootPath, "Scripts\\ID");
+
+            UnityEditor.AssetDatabase.CreateAsset(dataTableManager, $"Assets/{rootPath}\\Editor\\TinyDataTableManager.asset");
+            UnityEditor.AssetDatabase.SaveAssets();            
+            
+            OnClickStart?.Invoke(dataTableManager);
         }
+
+
+
+        private void MakeDirectory(string rootPath, string subPath)
+        {
+            var directory = $"Assets/{rootPath}\\{subPath}";
+            
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            
+                // Unity側にフォルダが作成されたことを認識させる
+                AssetDatabase.Refresh();
+            }
+        }        
     }
 }
