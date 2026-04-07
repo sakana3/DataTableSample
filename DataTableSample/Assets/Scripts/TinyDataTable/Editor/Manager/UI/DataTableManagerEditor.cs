@@ -1,8 +1,6 @@
+using System;
 using UnityEngine;
 using UnityEditor;
-using System;
-using System.Diagnostics;
-using TMPro;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
@@ -30,11 +28,12 @@ namespace TinyDataTable.Editor
         private VisualElement tableViewRoot;
 
         private Toolbar toolbar;
+        private DataTableManagerTreeView treeView;
         
         private void CreateGUI()
         {
             var so = new SerializedObject(manager);
-            
+
             toolbar = new Toolbar();
             Add(toolbar);
             
@@ -52,94 +51,31 @@ namespace TinyDataTable.Editor
             splitView.Add(treeViewRoot);
             splitView.Add(tableViewRoot);
 
-            var treeView = new SerializableTreeView<DataTableAsset>(manager.Tree);
-            treeView.hierarchyChanged += tree =>
-            {
-                Undo.RecordObject(manager, "Update DataTableManager HierarchyChanged");
-                manager.Tree.FromTree(tree);
-                EditorUtility.SetDirty(manager);
-            };
-            treeView.style.flexGrow = 1;
-            treeView.Bind(so);
-            treeView.TrackSerializedObjectValue(so, a => treeView.BuildTree(manager.Tree) );
-            treeView.makeItem = (id,node,isFold,hasChildren) =>
-            {
-                var root = new VisualElement();
-                root.style.flexDirection = FlexDirection.Row;
+            CreateTreeView();
 
-                var icon = new Image();
-                icon.style.width = 16;
-                icon.style.height = 16;
-                root.Add(icon);
-
-                if (node.IsFolder)
-                {
-                    icon.image = isFold ? (hasChildren ? FolderIcon:FolderEmptyIcon) : FolderOpenIcon;
-                    var textField = new TextField();
-                    var inputElement = textField.Q("unity-text-input");
-                    if (inputElement != null)
-                    {
-                        inputElement.style.borderTopWidth = 0;
-                        inputElement.style.borderBottomWidth = 0;
-                        inputElement.style.borderLeftWidth = 0;
-                        inputElement.style.borderRightWidth = 0;
-    
-                        // 背景も透明にしたい場合
-                        inputElement.style.backgroundColor = Color.clear;
-                    }                    
-                    textField.value = node.Name;
-                    textField.RegisterCallback<FocusOutEvent>(evt =>
-                    {
-                        if (node.Name != textField.value)
-                        {
-                            treeView.TreeNameChange(id, textField.value);
-                        }
-                    });
-                    root.Add(textField);
-                }
-                else
-                {
-                    icon.image = ItemIcon;
-                    var label = new Label();
-                    label.text = node.Name;
-                    root.Add(label);
-                }
-
-                return root;
-            };
-            treeView.onCreateItem = (Position, func) =>
-            {
-                var popup = new DataTableCreateTablePopup(manager.DefaultNamespace)
-                {
-                    clickCreateButton = className =>
-                    {
-                        var tableAsset = CreateDataTableAsset(className);
-                        func(className,tableAsset);
-                    }
-                };
-                UnityEditor.PopupWindow.Show(Position, popup);                    
-            };
-            
-            treeViewRoot.Add(treeView);
-            tableViewRoot.Add( new Label("DataTableManager"));
         }
 
-        DataTableAsset CreateDataTableAsset(string name)
+        private void CreateTreeView()
         {
-            var dataTableAsset = ScriptableObject.CreateInstance<DataTableAsset>();
-            
-            if (!System.IO.Directory.Exists(manager.TablesPath))
+            treeViewRoot.Clear();
+            treeView = new DataTableManagerTreeView(manager, true)
             {
-                System.IO.Directory.CreateDirectory(manager.TablesPath);
-            
-                // Unity側にフォルダが作成されたことを認識させる
-                AssetDatabase.Refresh();
+                OnSelectDataTableAsset = OnSelectDataTableAsset,
+            };
+            treeViewRoot.Add(treeView);            
+        }
+        
+        private void OnSelectDataTableAsset(DataTableAsset asset)
+        {
+            tableViewRoot.Clear();
+            if (asset != null)
+            {
+                var tableOperator = new DataTableManagerTableOperator(manager, asset);
+                tableViewRoot.Add(tableOperator);
+                
+                var tableView = new DataTableManagerTableView(manager, asset, true);
+                tableViewRoot.Add(tableView);
             }
-            
-            AssetDatabase.CreateAsset(dataTableAsset, $"{manager.TablesPath}\\{name}.asset");
-            AssetDatabase.SaveAssets();            
-            
-            return dataTableAsset;
         }
     }
 }

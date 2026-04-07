@@ -17,13 +17,7 @@ namespace TinyDataTable
         
 #if UNITY_EDITOR        
         [SerializeField]
-        private UnityEditor.MonoScript classScript;
-        
-        public UnityEditor.MonoScript ClassScript
-        {
-            get => classScript;
-            set => classScript = value;
-        }
+        public UnityEditor.MonoScript classScript;
 #endif
         //Tags
         [SerializeField] private string[] tags = Array.Empty<string>();

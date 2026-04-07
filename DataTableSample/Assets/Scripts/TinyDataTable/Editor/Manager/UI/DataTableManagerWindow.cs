@@ -1,8 +1,9 @@
+using System.IO;
 using System.Linq;
 using UnityEngine;
-using UnityEditor;
-using System.IO;
 using UnityEngine.UIElements;
+using UnityEditor;
+using UnityEditor.UIElements;
 
 namespace TinyDataTable.Editor
 {
@@ -45,6 +46,7 @@ namespace TinyDataTable.Editor
         public void CreateGUI()
         {
             rootVisualElement.Clear();
+            
             // ルート要素
             var root = new VisualElement();
             root.style.flexGrow = 1;

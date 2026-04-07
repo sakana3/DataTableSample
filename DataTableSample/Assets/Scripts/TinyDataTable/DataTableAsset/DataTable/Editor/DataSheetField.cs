@@ -36,7 +36,6 @@ namespace TinyDataTable.Editor
                 this.styleSheets.Add(styleSheet);
             }
   
-            Add(new Label("DataSheet"));
             _multiColumnListView = CreateListView(property);
             Add(_multiColumnListView);
         }
@@ -56,7 +55,7 @@ namespace TinyDataTable.Editor
                 virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
                 showAlternatingRowBackgrounds = AlternatingRowBackground.All,
                 showBoundCollectionSize = false,
-                showFoldoutHeader = true,
+//                showFoldoutHeader = true,
                 selectionType = SelectionType.Multiple
             };
             _multiColumnListView = listView;

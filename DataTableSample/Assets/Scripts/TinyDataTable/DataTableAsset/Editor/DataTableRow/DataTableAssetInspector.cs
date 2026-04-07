@@ -21,7 +21,7 @@ namespace TinyDataTable.Editor
             var dataTableAsset = serializedObject.targetObject as DataTableAsset;
 
             //クラス情報
-            if (dataTableAsset.ClassScript == null)
+            if (dataTableAsset.classScript == null)
             {
                 string path = AssetDatabase.GetAssetPath(serializedObject.targetObject);
                 var classNameField = new TextField()
@@ -401,6 +401,6 @@ namespace TinyDataTable.Editor
             
                 EditorUtility.SetDirty(settings);
             }
-        }        
+        }
     }
 }

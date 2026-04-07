@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -17,7 +16,8 @@ namespace TinyDataTable.Editor
 
         public Func<int,SerializableTree<ITEM>.Node,bool,bool, VisualElement> makeItem;
         public Action<Rect, Action<string,ITEM>> onCreateItem;
-
+        public Action<ITEM> OnSelectDataTableAsset;
+        
         public SerializableTreeView(SerializableTree<ITEM> target)
         {
             this.target = target;
@@ -83,6 +83,12 @@ namespace TinyDataTable.Editor
             treeView.itemExpandedChanged += args =>
             {
                 treeView.RefreshItems();
+            };
+            treeView.selectedIndicesChanged += indexs =>
+            {
+                var index = indexs.FirstOrDefault();
+                var node = treeView.GetItemDataForIndex<SerializableTree<ITEM>.TreeNode>(index);
+                OnSelectDataTableAsset?.Invoke(node.node.Item);
             };
             
             treeView.viewDataKey = $"SerializableTreeView<{nameof(ITEM)}>";

@@ -47,9 +47,9 @@ namespace TinyDataTable.Editor
             }            
             
             //未インポートだった場合、新規名をつける
-            if (dataTableAsset.ClassScript != null)
+            if (dataTableAsset.classScript != null)
             {
-                var script = dataTableAsset.ClassScript;
+                var script = dataTableAsset.classScript;
                 scriptName = script.GetClass().Name;
                 namespaceName = script.GetClass().Namespace;
                 fullPath = AssetDatabase.GetAssetPath(script);
@@ -127,7 +127,7 @@ namespace TinyDataTable.Editor
             DataTableAsset asset = AssetDatabase.LoadAssetAtPath<DataTableAsset>(assetPath);
             if (script != null && asset != null)
             {
-                asset.ClassScript = script;
+                asset.classScript = script;
                 asset.ClassType = script.GetClass().FullName;
                 var serializedObject =  new SerializedObject(asset);
                 
@@ -232,6 +232,43 @@ namespace TinyDataTable.Editor
             string parentFolder = Path.GetDirectoryName(path);
             string newFolder = Path.GetFileName(path);
             var t = AssetDatabase.CreateFolder(parentFolder, newFolder);
+        }
+        
+
+        public static bool CheckNeedEnsureAddressable(UnityEngine.Object asset , bool setAddressIfNotEntry)
+        {
+            if (asset == null) return false;
+
+            //Resources以下にあるならは登録しない
+            string assetPath = AssetDatabase.GetAssetPath(asset);
+            if (assetPath.Contains("/Resources/"))
+            {
+                return false;
+            }
+            
+            var settings = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null) return false;
+
+            string path = AssetDatabase.GetAssetPath(asset);
+            string guid = AssetDatabase.AssetPathToGUID(path);
+            
+            // エントリを検索
+            var entry = settings.FindAssetEntry(guid);            
+            
+            // まだ登録されていなければ登録
+            if (setAddressIfNotEntry && entry == null)
+            {
+                // デフォルトグループに登録
+                entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
+            
+                // アドレスを設定
+                entry.SetAddress(path);
+            
+                EditorUtility.SetDirty(settings);
+            }
+            
+            return entry == null;
         }        
+        
     }
 }
