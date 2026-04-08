@@ -25,6 +25,23 @@ namespace TinyDataTable.Editor
         {
             var so = new SerializedObject(asset);
 
+            var assetField = new ObjectField();
+            assetField.objectType = typeof(DataTableAsset);
+            assetField.value = asset;
+            assetField.SetEnabled(false);
+            assetField.style.borderBottomColor = Color.gray;
+            assetField.style.borderBottomWidth = 1;
+            assetField.style.paddingBottom = 4;
+            assetField.style.marginBottom = 4;            
+            Add(assetField);          
+            
+            var addressableElement = new AddressableElement(asset);
+            addressableElement.style.borderBottomColor = Color.gray;
+            addressableElement.style.borderBottomWidth = 1;
+            addressableElement.style.paddingBottom = 4;
+            addressableElement.style.marginBottom = 4;
+            Add(addressableElement);
+            
             var propGroup = new VisualElement();
             propGroup.style.flexDirection = FlexDirection.Row;
             Add(propGroup);
@@ -36,13 +53,7 @@ namespace TinyDataTable.Editor
                 root.style.flexGrow = 1;
                 root.Bind(so);
                 propGroup.Add(root);                
-                
-                var assetField = new ObjectField("Target");
-                assetField.objectType = typeof(DataTableAsset);
-                assetField.value = asset;
-                assetField.SetEnabled(false);
-                root.Add(assetField);                
-                
+  
                 var typeNameField = new PropertyField(so.FindProperty("classType"));
                 typeNameField.SetEnabled(false);
                 root.Add(typeNameField);            
@@ -56,7 +67,7 @@ namespace TinyDataTable.Editor
             {
                 text = asset.classScript == null ? "Prepare the script" : "Reload the script",
             };
-            exportButton.iconImage = new Background(BuildIcon);
+            exportButton.iconImage = Background.FromTexture2D(BuildIcon);
             exportButton.clicked += () =>
             {
                 SaveDataTable.CheckNeedEnsureAddressable(asset,true);

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -96,6 +97,13 @@ namespace TinyDataTable.Editor
                 return false;
             }
             return true;            
+        }
+
+        public static bool CheckExistClass(string namespaceName, string className)
+        {
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Any(t => t.Name == className && t.Namespace == namespaceName);
         }
         
         /// <summary>

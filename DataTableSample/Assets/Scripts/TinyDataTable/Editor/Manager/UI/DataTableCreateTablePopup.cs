@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.UI;
@@ -60,8 +61,7 @@ namespace TinyDataTable.Editor
         private void OnClassNameChangeCallback(TextField textField, ChangeEvent<string> evt)
         {
             var className = textField.value;
-            Type type = Type.GetType($"{namespaceName}.{className}");
-
+            
             if (string.IsNullOrEmpty(className))
             {
                 confirmButton.tooltip = "Input table name.";
@@ -72,7 +72,7 @@ namespace TinyDataTable.Editor
                 confirmButton.tooltip = "Invalid table name.";
                 confirmButton.SetEnabled( false);
             }
-            else if (type != null)
+            else if (UIToolkitEditorUtility.CheckExistClass( namespaceName,className) )
             {
                 confirmButton.tooltip = "This name is already used.";
                 confirmButton.SetEnabled( false);              

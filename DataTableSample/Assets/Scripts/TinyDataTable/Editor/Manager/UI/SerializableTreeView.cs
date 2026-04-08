@@ -17,6 +17,8 @@ namespace TinyDataTable.Editor
         public Func<int,SerializableTree<ITEM>.Node,bool,bool, VisualElement> makeItem;
         public Action<Rect, Action<string,ITEM>> onCreateItem;
         public Action<ITEM> OnSelectDataTableAsset;
+        private HelpBox infoBox;
+        
         
         public SerializableTreeView(SerializableTree<ITEM> target)
         {
@@ -32,6 +34,13 @@ namespace TinyDataTable.Editor
             serchField.style.width = new StyleLength( StyleKeyword.Auto );
             serchField.RegisterValueChangedCallback( OnSearchBarValueChangedCallback );
             this.Add(serchField);
+            
+
+            if (target.Nodes == null || target.Nodes.Length == 0)
+            {
+                infoBox = new HelpBox("このエリアを右クリックすることで生成メニューが出ます。", HelpBoxMessageType.Info);
+                Add(infoBox);
+            }
             
             treeView = new TreeView()
             {
@@ -86,9 +95,16 @@ namespace TinyDataTable.Editor
             };
             treeView.selectedIndicesChanged += indexs =>
             {
-                var index = indexs.FirstOrDefault();
-                var node = treeView.GetItemDataForIndex<SerializableTree<ITEM>.TreeNode>(index);
-                OnSelectDataTableAsset?.Invoke(node.node.Item);
+                if (indexs.Count() > 0)
+                {
+                    var index = indexs.FirstOrDefault();
+                    var node = treeView.GetItemDataForIndex<SerializableTree<ITEM>.TreeNode>(index);
+                    OnSelectDataTableAsset?.Invoke(node.node.Item);
+                }
+                else
+                {
+                    OnSelectDataTableAsset?.Invoke(null);
+                }
             };
             
             treeView.viewDataKey = $"SerializableTreeView<{nameof(ITEM)}>";
@@ -145,6 +161,12 @@ namespace TinyDataTable.Editor
         private void InsertNewTree(int rootID, string name,ITEM nodeItem = null)
         {
             Debug.Log($"InsertNewTree {rootID}");
+            if(infoBox != null)
+            {
+                Remove(infoBox);
+                infoBox = null;
+            }
+            
             int childIndex = -1;
 
             if (rootID >= 0)

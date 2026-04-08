@@ -11,7 +11,7 @@ namespace TinyDataTable.Editor
         private static Texture FolderIcon = EditorGUIUtility.IconContent("d_Folder Icon").image;
         private static Texture FolderEmptyIcon = EditorGUIUtility.IconContent( "d_FolderEmpty Icon").image;
         private static Texture FolderOpenIcon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
-        private static Texture ItemIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon").image;
+        public static Texture ItemIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon").image;
         
         private DataTableManager Manager = null;
         private bool IsEditMode = false;
@@ -28,7 +28,6 @@ namespace TinyDataTable.Editor
         private void CreateGUI()
         {
             var so = new SerializedObject(Manager);
-
 
             var treeView = new SerializableTreeView<DataTableAsset>(Manager.Tree);
             treeView.hierarchyChanged += tree =>
@@ -78,7 +77,8 @@ namespace TinyDataTable.Editor
                 }
                 else
                 {
-                    icon.image = ItemIcon;
+                   var image = AssetPreview.GetMiniThumbnail(node.Item);
+                    icon.image = image;
                     var label = new Label();
                     label.text = node.Name;
                     root.Add(label);
@@ -115,6 +115,7 @@ namespace TinyDataTable.Editor
             }
             
             AssetDatabase.CreateAsset(dataTableAsset, $"{Manager.TablesPath}\\{name}.asset");
+            EditorGUIUtility.SetIconForObject(dataTableAsset, DataTableManagerTreeView.ItemIcon as Texture2D);
             AssetDatabase.SaveAssets();            
             
             SaveDataTable.CheckNeedEnsureAddressable(dataTableAsset,true);

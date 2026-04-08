@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using NUnit.Framework.Interfaces;
+using UnityEngine;
 
 namespace TinyDataTable
 {
@@ -32,9 +33,9 @@ namespace TinyDataTable
             public Node node;
             public int index;
             public List<TreeNode> children;
-        }        
+        }
 
-        public Node[] Nodes;
+        public Node[] Nodes = new Node[0];
 
         public List<TreeNode> ToTree()
         {

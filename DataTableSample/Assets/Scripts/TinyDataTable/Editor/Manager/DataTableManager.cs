@@ -4,6 +4,12 @@ using System;
 
 namespace TinyDataTable.Editor
 {
+    [Serializable]
+    public class DataTableTree : SerializableTree<DataTableAsset>
+    {
+        
+    }
+    
     public class DataTableManager : ScriptableObject
     {
         public enum DataType
@@ -18,11 +24,12 @@ namespace TinyDataTable.Editor
         public string RootPath;
         [SerializeField]
         public string DefaultNamespace;
+        [SerializeField]
+        public DataTableTree Tree = new ();
 
         public string TablesPath => $"Assets\\{RootPath}\\Tables";
         public string ScriptsPath => $"Assets\\{RootPath}\\Scripts";
         
-        [SerializeField] public SerializableTree<DataTableAsset> Tree;
         
         public void MakeDirectory( string subPath )
         {

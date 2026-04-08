@@ -12,11 +12,20 @@ namespace TinyDataTable.Editor
         public static Texture FolderEmptyIcon = EditorGUIUtility.IconContent( "d_FolderEmpty Icon").image;
         public static Texture FolderOpenIcon = EditorGUIUtility.IconContent("d_FolderOpened Icon").image;
 
+        public enum Mode
+        {
+            Edit ,
+            Build ,
+            Preferences,
+            Addressable,
+        }
+        
         
         public static Texture ItemIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon").image;
         
         private DataTableManager manager = null;
-        
+        public Mode mode { private set; get; }
+
         public DataTableManagerEditor(DataTableManager manager)
         {
             this.manager = manager;
@@ -36,7 +45,20 @@ namespace TinyDataTable.Editor
 
             toolbar = new Toolbar();
             Add(toolbar);
+
+            var modeMenu = new ToolbarMenu()
+            {
+                text = "編集モード",
+                tooltip = "クリックで編集モードを切り替えます",
+     
+            };
+            modeMenu.menu.AppendAction("項目 1", (action) => Debug.Log("項目 1 が押されました"));
+            modeMenu.menu.AppendAction("項目 2", (action) => Debug.Log("項目 2 が押されました"));            
             
+            toolbar.Add(modeMenu);
+            
+            
+
             this.style.flexGrow = 1;
             splitView = new TwoPaneSplitView(
                 fixedPaneIndex: 0,
@@ -62,6 +84,7 @@ namespace TinyDataTable.Editor
             {
                 OnSelectDataTableAsset = OnSelectDataTableAsset,
             };
+            treeView.style.flexGrow = 1;
             treeViewRoot.Add(treeView);            
         }
         
@@ -71,9 +94,11 @@ namespace TinyDataTable.Editor
             if (asset != null)
             {
                 var tableOperator = new DataTableManagerTableOperator(manager, asset);
+
                 tableViewRoot.Add(tableOperator);
                 
                 var tableView = new DataTableManagerTableView(manager, asset, true);
+                tableView.style.flexGrow = 1;
                 tableViewRoot.Add(tableView);
             }
         }
