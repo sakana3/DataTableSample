@@ -116,10 +116,11 @@ namespace TinyDataTable.Editor
             
             AssetDatabase.CreateAsset(dataTableAsset, $"{Manager.TablesPath}\\{name}.asset");
             EditorGUIUtility.SetIconForObject(dataTableAsset, DataTableManagerTreeView.ItemIcon as Texture2D);
-            AssetDatabase.SaveAssets();            
+            AssetDatabase.Refresh();
+            AssetDatabase.SaveAssets();
             
             SaveDataTable.CheckNeedEnsureAddressable(dataTableAsset,true);
-                
+
             SaveDataTable.SaveScript(
                 dataTableAsset,
                 dataTableAsset.name,

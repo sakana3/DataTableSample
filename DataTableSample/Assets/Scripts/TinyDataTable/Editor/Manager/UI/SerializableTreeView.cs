@@ -61,11 +61,15 @@ namespace TinyDataTable.Editor
                 }
                 else
                 {
-                    var node = treeView.GetItemDataForId<SerializableTree<ITEM>.TreeNode>(i).node;
-                    bool isExpand = treeView.viewController.IsExpanded(i);
-                    bool hasChildren = treeView.viewController.HasChildren(i);
-                    var ve = makeItem.Invoke(i,node,isExpand,hasChildren);
-                    element.Add(ve);
+                    var item = treeView.GetItemDataForId<SerializableTree<ITEM>.TreeNode>(i);
+                    if (item != null)
+                    {
+                        var node = treeView.GetItemDataForId<SerializableTree<ITEM>.TreeNode>(i).node;
+                        bool isExpand = treeView.viewController.IsExpanded(i);
+                        bool hasChildren = treeView.viewController.HasChildren(i);
+                        var ve = makeItem.Invoke(i, node, isExpand, hasChildren);
+                        element.Add(ve);
+                    }
                 }
 
                 var itemContextMenu = new ContextualMenuManipulator((e) =>
@@ -200,13 +204,14 @@ namespace TinyDataTable.Editor
             {
                 
             };
-            treeView.AddItem(item,rootID,childIndex);
+            treeView.AddItem(item,rootID,childIndex,true);
+            treeView.SetSelectionById( new []{ newId} );
             OnHerarchyChanged();
         }
 
         private void RemoveTree(int rootID)
         {
-            if (treeView.TryRemoveItem(rootID, false))
+            if (treeView.TryRemoveItem(rootID, true))
             {
                 OnHerarchyChanged();
             }

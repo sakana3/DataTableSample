@@ -25,6 +25,7 @@ namespace TinyDataTable.Editor
         {
             var so = new SerializedObject(asset);
 
+            
             var assetField = new ObjectField();
             assetField.objectType = typeof(DataTableAsset);
             assetField.value = asset;
