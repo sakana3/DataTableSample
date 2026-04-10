@@ -18,11 +18,12 @@ namespace TinyDataTable.Editor
         public Action<Rect, Action<string,ITEM>> onCreateItem;
         public Action<ITEM> OnSelectDataTableAsset;
         private HelpBox infoBox;
+        private bool _isStructureMode;
         
-        
-        public SerializableTreeView(SerializableTree<ITEM> target)
+        public SerializableTreeView(SerializableTree<ITEM> target , bool isStructureMode )
         {
             this.target = target;
+            this._isStructureMode = isStructureMode;
             CreateGUI();
         }
 
@@ -45,7 +46,7 @@ namespace TinyDataTable.Editor
             treeView = new TreeView()
             {
                 selectionType = SelectionType.Single,
-                reorderable = true,
+                reorderable = _isStructureMode,
             };
             treeView.style.flexGrow = 1;
             treeView.itemIndexChanged += (_,_) => OnHerarchyChanged();
@@ -72,27 +73,26 @@ namespace TinyDataTable.Editor
                     }
                 }
 
+                if (_isStructureMode)
+                {
+                    var itemContextMenu = new ContextualMenuManipulator((e) =>
+                        {
+                            e.menu.AppendAction("Create Folder", (p) => InsertNewTree(i, "New Folder"));
+                            e.menu.AppendAction("Create Table", (p) => CreateItem(p.eventInfo.mousePosition, i));
+                            e.menu.AppendAction("Delete", (p) => RemoveTree(i));
+                        }
+                    ) { target = element };
+                }
+            };
+            if (_isStructureMode)
+            {
                 var itemContextMenu = new ContextualMenuManipulator((e) =>
                     {
-                        e.menu.AppendAction("Create Folder", (p) => InsertNewTree(i, "New Folder"));
-                        e.menu.AppendAction("Create Table", (p) => CreateItem(p.eventInfo.mousePosition,i));
-                        e.menu.AppendAction("Delete", (p) => RemoveTree(i));
+                        e.menu.AppendAction("Create Folder", (p) => { InsertNewTree(-1, "New Folder"); });
+                        e.menu.AppendAction("Create Table", (p) => { CreateItem(p.eventInfo.mousePosition, -1); });
                     }
-                ) { target = element };
-
-            };
-            var itemContextMenu = new ContextualMenuManipulator((e) =>
-                {
-                    e.menu.AppendAction("Create Folder", (p) =>
-                    {
-                        InsertNewTree(-1,"New Folder");
-                    });
-                    e.menu.AppendAction("Create Table", (p) =>
-                    {
-                        CreateItem(p.eventInfo.mousePosition,-1);
-                    });
-                }
-            ) { target = treeView };
+                ) { target = treeView };
+            }
             treeView.itemExpandedChanged += args =>
             {
                 treeView.RefreshItems();

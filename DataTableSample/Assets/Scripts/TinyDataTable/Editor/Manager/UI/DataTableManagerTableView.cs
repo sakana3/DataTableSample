@@ -10,12 +10,12 @@ namespace TinyDataTable.Editor
     {
         private DataTableManager Manager = null;
         private DataTableAsset asset;
-        private bool IsEditMode = false;
-        
-        public DataTableManagerTableView(DataTableManager manager,DataTableAsset asset,bool isEditMode)
+        private bool IsStructureMode { set; get; } = false;
+
+        public DataTableManagerTableView(DataTableManager manager,DataTableAsset asset,bool isStructureMode)
         {
             this.Manager = manager;
-            this.IsEditMode = isEditMode;
+            this.IsStructureMode = isStructureMode;
             this.asset = asset;
             CreateGUI();
         }
@@ -25,7 +25,7 @@ namespace TinyDataTable.Editor
             var property = new SerializedObject(asset)
                 .FindProperty("dataSheet");
             
-            var sheet = new DataSheetField(property);            
+            var sheet = new DataSheetField(property,IsStructureMode);            
             Add( sheet);            
         }
     }

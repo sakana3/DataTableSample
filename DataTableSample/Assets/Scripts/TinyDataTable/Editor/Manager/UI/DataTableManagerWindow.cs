@@ -18,7 +18,7 @@ namespace TinyDataTable.Editor
         }
 
         private DataTableManager dataTableManager;
-        private SerializedObject serializedObject;
+
         
         /// <summary>
         /// Unityエディタでエディターウィンドウが有効化されたときに呼び出されるメソッド。
@@ -36,11 +36,7 @@ namespace TinyDataTable.Editor
                     dataTableManager = AssetDatabase.LoadAssetAtPath<DataTableManager>(path);
                 }
             }
-            
-            if (dataTableManager != null)
-            {
-                serializedObject = new SerializedObject(dataTableManager);
-            }
+
         }
         
         public void CreateGUI()

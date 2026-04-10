@@ -13,6 +13,7 @@ namespace TinyDataTable.Editor
         public struct Item
         {
             public int id;
+            public int index;
             public bool isObsolete;
         }
         
@@ -24,10 +25,12 @@ namespace TinyDataTable.Editor
         private List<int> columnIDList = new List<int>();
         private ( List<string> fieldNames, List<string> recordNames ) _names = (null,null);
         private List<int> fieldOrderList = new List<int>();
+        private bool IsStructureMode;
         
-        public DataSheetField(SerializedProperty property)
+        public DataSheetField(SerializedProperty property,bool IsStructureMode)
         {
             _property = property;
+            this.IsStructureMode = IsStructureMode;
             
             // 拡張子 (.uss) を含めて指定します
             var styleSheet = EditorGUIUtility.Load("TinyDataTableMultiColumListViewStyle.uss") as StyleSheet;
@@ -47,16 +50,16 @@ namespace TinyDataTable.Editor
             var listView = new MultiColumnListView()
             {
                 name = property.displayName,
-                reorderable = true,
+                reorderable = IsStructureMode,
                 reorderMode = ListViewReorderMode.Simple, //AnimatedにするとdragAndDropUpdateが来ない
 
-                showAddRemoveFooter = true,
+                showAddRemoveFooter = IsStructureMode,
                 sortingMode = ColumnSortingMode.None,
                 virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
                 showAlternatingRowBackgrounds = AlternatingRowBackground.All,
                 showBoundCollectionSize = false,
 //                showFoldoutHeader = true,
-                selectionType = SelectionType.Multiple
+                selectionType = IsStructureMode ? SelectionType.Multiple : SelectionType.None
             };
             _multiColumnListView = listView;
             listView.columns.reorderable = false;
@@ -72,10 +75,11 @@ namespace TinyDataTable.Editor
                 (args.insertAtIndex is 0) ? DragVisualMode.Rejected : DragVisualMode.Move;
             listView.columnSortingChanged += () => { Debug.Log("columnSortingChanged"); };
 
-            listView.makeFooter = () =>
+            if (IsStructureMode)
             {
-                return MakeFooter(property);
-            };
+                listView.makeFooter = () => { return MakeFooter(property); };
+            }
+
             this.TrackSerializedObjectValue(property.serializedObject, (prop) =>
             {
                 var columnChange = DataSheetPropertyUtility.CheckColums(property, columnIDList);
@@ -110,7 +114,19 @@ namespace TinyDataTable.Editor
         {
             var list = DataSheetPropertyUtility.MakeRowIDList(property);
 
-            rowIDList = list.Select(i => new Item() { id = i }).ToList();
+            if (IsStructureMode)
+            {
+                rowIDList = list
+                    .Select((id,index) => new Item() { id = id , index = index})
+                    .ToList();
+            }
+            else
+            {
+                rowIDList = list
+                    .Select((id,index) => new Item() { id = id , index = index})
+                    .Where( i => i.id != 0)
+                    .ToList();
+            }
 
             listView.itemsSource = rowIDList;                    
         }        
@@ -149,9 +165,11 @@ namespace TinyDataTable.Editor
                 listView.columns.Add(columProp);
             }
 
-            var lastColumn = MakeLastColumn(property);
-            listView.columns.Add(lastColumn);
-            
+            if (IsStructureMode)
+            {
+                var lastColumn = MakeLastColumn(property);
+                listView.columns.Add(lastColumn);
+            }
         }        
      
      
@@ -186,8 +204,9 @@ namespace TinyDataTable.Editor
 
                     return e;
                 },
-                bindCell = (e,iRow) =>
+                bindCell = (e,idx) =>
                 {
+                    var iRow = rowIDList[idx].index;
                     var textField = e.Q<TextField>();
                     if( textField != null )
                     {
@@ -232,8 +251,9 @@ namespace TinyDataTable.Editor
                     e.style.flexGrow = 1.0f;
                     return e;
                 },
-                bindCell = (e,iRow) =>
+                bindCell = (e,idx) =>
                 {
+                    var iRow = rowIDList[idx].index;                    
                     if (iRow > 0)
                     {
                         var label = new Label();
@@ -268,14 +288,18 @@ namespace TinyDataTable.Editor
                     var iField = fieldOrderList[iColum];
                     var (title,id,description,isObsolete) = DataSheetPropertyUtility.GetColumn(property,iField);
                     var header = MakeColumHeader(property, title, isObsolete,description) as Label;
-                    var manipulator = MakeColumHeaderManipulator(property,header ,iField);
-                    header.AddManipulator( manipulator);
+                    if (IsStructureMode)
+                    {
+                        var manipulator = MakeColumHeaderManipulator(property, header, iField);
+                        header.AddManipulator(manipulator);
+                    }
                     columnIDList.Add( id);
                     return header;
                 },
                 makeCell = () => new VisualElement() { },
-                bindCell = (e,iRow) =>
+                bindCell = (e,idx) =>
                 {
+                    var iRow = rowIDList[idx].index;                            
                     var iField = fieldOrderList[iColum];
                     
                     var isObsoleteCol = DataSheetPropertyUtility.ColumObsolete(property,iField).boolValue;

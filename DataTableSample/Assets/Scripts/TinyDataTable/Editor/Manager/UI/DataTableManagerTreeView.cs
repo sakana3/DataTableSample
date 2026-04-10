@@ -14,14 +14,14 @@ namespace TinyDataTable.Editor
         public static Texture ItemIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon").image;
         
         private DataTableManager Manager = null;
-        private bool IsEditMode = false;
+        private bool IsStructureMode = false;
 
         public Action<DataTableAsset> OnSelectDataTableAsset;
         
-        public DataTableManagerTreeView(DataTableManager manager,bool isEditMode)
+        public DataTableManagerTreeView(DataTableManager manager,bool isStructureMode)
         {
             this.Manager = manager;
-            this.IsEditMode = isEditMode;
+            this.IsStructureMode = isStructureMode;
             CreateGUI();
         }
         
@@ -29,7 +29,7 @@ namespace TinyDataTable.Editor
         {
             var so = new SerializedObject(Manager);
 
-            var treeView = new SerializableTreeView<DataTableAsset>(Manager.Tree);
+            var treeView = new SerializableTreeView<DataTableAsset>(Manager.Tree,IsStructureMode);
             treeView.hierarchyChanged += tree =>
             {
                 Undo.RecordObject(Manager, "Update DataTableManager HierarchyChanged");
@@ -53,27 +53,36 @@ namespace TinyDataTable.Editor
                 if (node.IsFolder)
                 {
                     icon.image = isFold ? (hasChildren ? FolderIcon:FolderEmptyIcon) : FolderOpenIcon;
-                    var textField = new TextField();
-                    var inputElement = textField.Q("unity-text-input");
-                    if (inputElement != null)
+                    if (IsStructureMode)
                     {
-                        inputElement.style.borderTopWidth = 0;
-                        inputElement.style.borderBottomWidth = 0;
-                        inputElement.style.borderLeftWidth = 0;
-                        inputElement.style.borderRightWidth = 0;
-    
-                        // 背景も透明にしたい場合
-                        inputElement.style.backgroundColor = Color.clear;
-                    }                    
-                    textField.value = node.Name;
-                    textField.RegisterCallback<FocusOutEvent>(evt =>
-                    {
-                        if (node.Name != textField.value)
+                        var textField = new TextField();
+                        var inputElement = textField.Q("unity-text-input");
+                        if (inputElement != null)
                         {
-                            treeView.TreeNameChange(id, textField.value);
+                            inputElement.style.borderTopWidth = 0;
+                            inputElement.style.borderBottomWidth = 0;
+                            inputElement.style.borderLeftWidth = 0;
+                            inputElement.style.borderRightWidth = 0;
+
+                            // 背景も透明にしたい場合
+                            inputElement.style.backgroundColor = Color.clear;
                         }
-                    });
-                    root.Add(textField);
+
+                        textField.value = node.Name;
+                        textField.RegisterCallback<FocusOutEvent>(evt =>
+                        {
+                            if (node.Name != textField.value)
+                            {
+                                treeView.TreeNameChange(id, textField.value);
+                            }
+                        });
+                        root.Add(textField);
+                    }
+                    else
+                    {
+                        var label = new Label(node.Name);
+                        root.Add(label);
+                    }
                 }
                 else
                 {

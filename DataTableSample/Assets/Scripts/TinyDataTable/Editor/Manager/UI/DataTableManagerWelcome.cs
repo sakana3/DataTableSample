@@ -98,10 +98,10 @@ namespace TinyDataTable.Editor
             dataTableManager.RootPath = rootPath;
             dataTableManager.DefaultNamespace = textInput2.value;
 
-            MakeDirectory(rootPath, "Editor");
-            MakeDirectory(rootPath, "Tables");
-            MakeDirectory(rootPath, "Resources");
-            MakeDirectory(rootPath, "Scripts\\ID");
+             MakeDirectory(rootPath, "Editor");
+//            MakeDirectory(rootPath, "Tables");
+//            MakeDirectory(rootPath, "Resources");
+//            MakeDirectory(rootPath, "Scripts\\ID");
 
             UnityEditor.AssetDatabase.CreateAsset(dataTableManager, $"Assets/{rootPath}\\Editor\\TinyDataTableManager.asset");
             UnityEditor.AssetDatabase.SaveAssets();            

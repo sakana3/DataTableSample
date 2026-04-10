@@ -30,21 +30,16 @@ namespace TinyDataTable.Editor
             assetField.objectType = typeof(DataTableAsset);
             assetField.value = asset;
             assetField.SetEnabled(false);
-            assetField.style.borderBottomColor = Color.gray;
-            assetField.style.borderBottomWidth = 1;
-            assetField.style.paddingBottom = 4;
-            assetField.style.marginBottom = 4;            
+            MakeMargine(assetField);            
             Add(assetField);          
             
             var addressableElement = new AddressableElement(asset);
-            addressableElement.style.borderBottomColor = Color.gray;
-            addressableElement.style.borderBottomWidth = 1;
-            addressableElement.style.paddingBottom = 4;
-            addressableElement.style.marginBottom = 4;
+            MakeMargine(addressableElement);
             Add(addressableElement);
             
             var propGroup = new VisualElement();
             propGroup.style.flexDirection = FlexDirection.Row;
+            MakeMargine(propGroup);            
             Add(propGroup);
             
             var scriptProp = so.FindProperty("classScript");
@@ -72,15 +67,26 @@ namespace TinyDataTable.Editor
             exportButton.clicked += () =>
             {
                 SaveDataTable.CheckNeedEnsureAddressable(asset,true);
-                
+
+                                
+                var scriptPath = AssetDatabase.GetAssetPath(asset.classScript);
+                var scriptDir = System.IO.Path.GetDirectoryName(scriptPath);
+
                 SaveDataTable.SaveScript(
                     asset,
-                    asset.name,
+                    asset.classScript.GetClass().Name,
                     manager.DefaultNamespace,
-                    manager.ScriptsPath);
+                    scriptDir);
             };
             propGroup.Add(exportButton);
         }
 
+        public static void MakeMargine(VisualElement ve)
+        {
+            ve.style.borderBottomColor = Color.gray;
+            ve.style.borderBottomWidth = 1;
+            ve.style.paddingBottom = 4;
+            ve.style.marginBottom = 4;            
+        }
     }
 }

@@ -15,16 +15,25 @@ namespace TinyDataTable.Editor
         public enum Mode
         {
             Edit ,
-            Build ,
+            Structure ,
             Preferences,
             Addressable,
         }
-        
+
+        private string[] ModeStr = new[]
+        {
+            "Edit Mode","Structure Mode","Preferences","Addressable"
+        };
         
         public static Texture ItemIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon").image;
         
         private DataTableManager manager = null;
-        public Mode mode { private set; get; }
+
+        public Mode mode
+        {
+            private set => EditorPrefs.SetInt("DataTableManagerEditorMode", (int)value);
+            get => (Mode)EditorPrefs.GetInt("DataTableManagerEditorMode");
+        }
 
         public DataTableManagerEditor(DataTableManager manager)
         {
@@ -38,7 +47,8 @@ namespace TinyDataTable.Editor
 
         private Toolbar toolbar;
         private DataTableManagerTreeView treeView;
-        
+        private bool isStructureMode => mode == Mode.Structure;
+
         private void CreateGUI()
         {
             var so = new SerializedObject(manager);
@@ -48,16 +58,29 @@ namespace TinyDataTable.Editor
 
             var modeMenu = new ToolbarMenu()
             {
-                text = "編集モード",
-                tooltip = "クリックで編集モードを切り替えます",
-     
+                text = ModeStr[(int)mode],
+                tooltip = "Change Mode",
             };
-            modeMenu.menu.AppendAction("項目 1", (action) => Debug.Log("項目 1 が押されました"));
-            modeMenu.menu.AppendAction("項目 2", (action) => Debug.Log("項目 2 が押されました"));            
-            
+            modeMenu.style.width = 120;
+            modeMenu.menu.AppendAction("Edit Mode",
+                action =>
+                {
+                    modeMenu.text = action.name;
+                    mode = Mode.Edit;
+                    CreateTreeView();
+                },
+                a => mode == Mode.Edit ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal
+            );            
+            modeMenu.menu.AppendAction("Structure Mode",
+                action =>
+                {
+                    modeMenu.text = action.name;
+                    mode = Mode.Structure;
+                    CreateTreeView();
+                },
+                a => mode == Mode.Structure ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal
+            );
             toolbar.Add(modeMenu);
-            
-            
 
             this.style.flexGrow = 1;
             splitView = new TwoPaneSplitView(
@@ -77,10 +100,11 @@ namespace TinyDataTable.Editor
 
         }
 
+        
         private void CreateTreeView()
         {
             treeViewRoot.Clear();
-            treeView = new DataTableManagerTreeView(manager, true)
+            treeView = new DataTableManagerTreeView(manager, isStructureMode)
             {
                 OnSelectDataTableAsset = OnSelectDataTableAsset,
             };
@@ -93,11 +117,13 @@ namespace TinyDataTable.Editor
             tableViewRoot.Clear();
             if (asset != null)
             {
-                var tableOperator = new DataTableManagerTableOperator(manager, asset);
+                if (isStructureMode)
+                {
+                    var tableOperator = new DataTableManagerTableOperator(manager, asset);
+                    tableViewRoot.Add(tableOperator);
+                }
 
-                tableViewRoot.Add(tableOperator);
-                
-                var tableView = new DataTableManagerTableView(manager, asset, true);
+                var tableView = new DataTableManagerTableView(manager, asset, isStructureMode);
                 tableView.style.flexGrow = 1;
                 tableViewRoot.Add(tableView);
             }

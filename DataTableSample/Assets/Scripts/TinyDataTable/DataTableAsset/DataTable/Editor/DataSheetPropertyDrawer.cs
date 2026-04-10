@@ -15,7 +15,7 @@ namespace TinyDataTable.Editor
         {
             var root = new VisualElement();
 
-            var sheet = new DataSheetField(property);
+            var sheet = new DataSheetField(property,true);
 
             root.Add(sheet);
             
