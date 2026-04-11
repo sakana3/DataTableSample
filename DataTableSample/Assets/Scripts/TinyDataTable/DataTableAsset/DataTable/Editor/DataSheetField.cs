@@ -82,16 +82,17 @@ namespace TinyDataTable.Editor
 
             this.TrackSerializedObjectValue(property.serializedObject, (prop) =>
             {
-                var columnChange = DataSheetPropertyUtility.CheckColums(property, columnIDList);
+                var columnChange = DataSheetPropertyUtility.CheckColums(property, columnIDList,!IsStructureMode);
                 if (columnChange is false)
                 {
                     SetupColumns(property, listView);
                 }
                 
-                var rowList = DataSheetPropertyUtility.MakeRowIDList(property);
+                var rowList = DataSheetPropertyUtility.MakeRowIDList(property)
+                    .Where(i=> IsStructureMode || (i.id != 0 && i.isObsolete is false));
                 var rowChange = rowIDList
-                    .Select(i=>i.id)
-                    .SequenceEqual(rowList.Where( i => IsStructureMode || i != 0 ));
+                    .Select(i=>(i.id,i.isObsolete))
+                    .SequenceEqual(rowList);
                 if ((columnChange && rowChange) is false)
                 {
                     SetupRows(property, listView);                    
@@ -119,14 +120,14 @@ namespace TinyDataTable.Editor
             if (IsStructureMode)
             {
                 rowIDList = list
-                    .Select((id,index) => new Item() { id = id , index = index})
+                    .Select((i,index) => new Item() { id = i.id ,isObsolete = i.isObsolete, index = index})
                     .ToList();
             }
             else
             {
                 rowIDList = list
-                    .Select((id,index) => new Item() { id = id , index = index})
-                    .Where( i => i.id != 0)
+                    .Select((i,index) => new Item() { id = i.id ,isObsolete = i.isObsolete, index = index})
+                    .Where( i => i.id != 0 && i.isObsolete is false)
                     .ToList();
             }
 
@@ -163,8 +164,11 @@ namespace TinyDataTable.Editor
             var columnsCount = DataSheetPropertyUtility.GetColumnCount(property);
             for (int i = 0; i < columnsCount; i++)
             {
-                var columProp = MakePropertyColumn(property, i);
-                listView.columns.Add(columProp);
+                if (DataSheetPropertyUtility.ColumObsolete(property, fieldOrderList[i]).boolValue is false)
+                {
+                    var columProp = MakePropertyColumn(property, i);
+                    listView.columns.Add(columProp);
+                }
             }
 
             if (IsStructureMode)

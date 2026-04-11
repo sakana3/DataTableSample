@@ -11,20 +11,34 @@ namespace TinyDataTable.Editor
     internal static class DataSheetPropertyUtility
     {
         //コラムが変化したかチェック
-        public static bool CheckColums(SerializedProperty property,IReadOnlyList<int> columIDs)
+        public static bool CheckColums(SerializedProperty property,IReadOnlyList<int> columIDs,bool checkObsolete)
         {
             var header = property.FindPropertyRelative("record.header.fieldInfos");
-            if (header.arraySize != columIDs.Count)
+            var headers = Enumerable.Range(0, header.arraySize)
+                .Select(i => header.GetArrayElementAtIndex(i));
+            
+            if (checkObsolete is false)
             {
-                return false;
+                if (header.arraySize != columIDs.Count)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                headers = headers
+                    .Where(p => p.FindPropertyRelative("obsolete").boolValue is false);
+                if (headers.Count() != columIDs.Count)
+                {
+                    return false;
+                }
             }
 
-            var headers = Enumerable.Range(0, header.arraySize)
-                .Select(i => header.GetArrayElementAtIndex(i))
+            var seq = headers
                 .OrderBy(p => p.FindPropertyRelative("index").intValue)
                 .Select(p => p.FindPropertyRelative("id").intValue);
 
-            if (columIDs.SequenceEqual( headers ) is false)
+            if (columIDs.SequenceEqual( seq ) is false)
             {
                 return false;
             }
@@ -118,9 +132,9 @@ namespace TinyDataTable.Editor
         }
 
 
-        public static List<int> MakeRowIDList(SerializedProperty property)
+        public static List<(int id,bool isObsolete)> MakeRowIDList(SerializedProperty property)
         {
-            List<int> idList = new ();
+            List<(int id,bool isObsolete)> idList = new ();
             var records = property.FindPropertyRelative("record.recordData");
             if (records != null)
             {
@@ -128,7 +142,8 @@ namespace TinyDataTable.Editor
                 {
                     var recordInfo = records.GetArrayElementAtIndex(i);
                     var idProp = recordInfo.FindPropertyRelative("header.id");
-                    idList.Add(idProp.intValue);                    
+                    var isObs = recordInfo.FindPropertyRelative("header.obsolete");
+                    idList.Add((idProp.intValue,isObs.boolValue));
                 }
             }            
             return idList;
