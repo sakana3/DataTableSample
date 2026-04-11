@@ -58,3 +58,34 @@
 .unity-toggle .unity-label {
     display: none;
 }
+
+/* PropertyField全体の枠や背景を消す */
+.no-frame-field {
+    background-color: transparent;
+    border-color: transparent;
+    border-width: 0;
+}
+
+/* 内部の入力フィールドの枠も消す必要がある場合 */
+.no-frame-field .unity-base-field__input {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.right-align-field .unity-base-field__input {
+    -unity-text-align: middle-right;
+    /* 必要に応じて右側に少し余白を作る */
+    padding-right: 4px;
+}
+
+/* 整数(int)フィールドの入力欄を右揃え */
+.unity-integer-field .unity-base-field__input,
+    /* 浮動小数点(float)フィールドの入力欄を右揃え */
+.unity-float-field .unity-base-field__input,
+    /* 倍精度(double)フィールドの入力欄を右揃え */
+.unity-double-field .unity-base-field__input,
+    /* 長整数(long)フィールドの入力欄を右揃え */
+.unity-long-field .unity-base-field__input {
+    -unity-text-align: middle-right;
+    padding-right: 4px;
+}

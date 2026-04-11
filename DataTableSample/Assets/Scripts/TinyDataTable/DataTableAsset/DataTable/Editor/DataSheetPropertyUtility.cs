@@ -18,13 +18,15 @@ namespace TinyDataTable.Editor
             {
                 return false;
             }
-            foreach ( var (id,idx) in columIDs.Select( (name,idx) => (name,idx) ))
+
+            var headers = Enumerable.Range(0, header.arraySize)
+                .Select(i => header.GetArrayElementAtIndex(i))
+                .OrderBy(p => p.FindPropertyRelative("index").intValue)
+                .Select(p => p.FindPropertyRelative("id").intValue);
+
+            if (columIDs.SequenceEqual( headers ) is false)
             {
-                var info = header.GetArrayElementAtIndex(idx);
-                if (info.FindPropertyRelative("id").intValue != id)
-                {
-                    return false;
-                };
+                return false;
             }
             return true;
         }

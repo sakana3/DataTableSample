@@ -89,7 +89,9 @@ namespace TinyDataTable.Editor
                 }
                 
                 var rowList = DataSheetPropertyUtility.MakeRowIDList(property);
-                var rowChange = rowIDList.Select(i=>i.id).SequenceEqual(rowList);
+                var rowChange = rowIDList
+                    .Select(i=>i.id)
+                    .SequenceEqual(rowList.Where( i => IsStructureMode || i != 0 ));
                 if ((columnChange && rowChange) is false)
                 {
                     SetupRows(property, listView);                    
@@ -311,6 +313,8 @@ namespace TinyDataTable.Editor
                     var prop = DataSheetPropertyUtility.GetCellProperty(property,iField,iRow);
                     var propertyField = new PropertyField(prop, string.Empty);
                     propertyField.BindProperty(prop);
+                    propertyField.AddToClassList("no-frame-field");
+//                    propertyField.AddToClassList("right-align-field");
                     e.Add(propertyField);
                 },
                 unbindCell = (e,i) =>
