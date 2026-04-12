@@ -134,7 +134,6 @@ namespace TinyDataTable.Editor
 
         private void RefreshTree(SerializableTree<ITEM> tree)
         {
-            Debug.Log("RefreshTree");
             var root = treeView.viewController.GetRootItemIds();
 
             for (int i = 0; i < tree.Nodes.Length; i++)
@@ -149,7 +148,6 @@ namespace TinyDataTable.Editor
 
         private void BuildTree(List<SerializableTree<ITEM>.TreeNode> tree)
         {
-            Debug.Log("BuildTree");
             var root = MakeTree(target.ToTree());
             treeView.SetRootItems(root);
             treeView.Rebuild();
@@ -164,7 +162,6 @@ namespace TinyDataTable.Editor
         
         private void InsertNewTree(int rootID, string name,ITEM nodeItem = null)
         {
-            Debug.Log($"InsertNewTree {rootID}");
             if(infoBox != null)
             {
                 Remove(infoBox);
@@ -184,7 +181,6 @@ namespace TinyDataTable.Editor
                 {
                     childIndex = treeView.viewController.GetChildIndexForId(rootID) + 1;
                     rootID = treeView.viewController.GetParentId(rootID);
-                    Debug.Log($"InsertNewTree {rootID},{childIndex}");
                 }
             }
             

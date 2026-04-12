@@ -67,6 +67,8 @@ namespace TinyDataTable.Editor
        
             EditorGUIUtility.SetIconForObject(manager, DataTableManagerTreeView.ItemIcon as Texture2D);
             
+            EditorPrefs.SetInt("DataTableManagerEditorMode", (int)DataTableManagerEditor.Mode.Structure);
+            
             CreateGUI();
         }
     }
