@@ -12,6 +12,7 @@ namespace TinyDataTable.Editor
     {
         private MultiColumnListView multiColumnListView;
         private SerializedProperty _targetProperty;
+        private DataTableManager Manager;
         
         private List<int> itemList = new List<int>();
         private List<int> columnList = new List<int>();
@@ -21,15 +22,16 @@ namespace TinyDataTable.Editor
         
         private Color _obsoleteColor = new Color( Color.darkViolet.r,Color.darkViolet.g,Color.darkViolet.b , 0.25f );
         
-        public DataTableGridField( SerializedProperty property,string name)
+        public DataTableGridField( DataTableManager manager , SerializedProperty property,string name)
         {
+            Manager = manager;
             Name = name;
             _targetProperty = property;
             multiColumnListView = MakeMultiColumnListView(property);
             Add( multiColumnListView );
         }
 
-        public DataTableGridField( SerializedProperty property) : this(property,property.name)
+        public DataTableGridField( DataTableManager manager ,SerializedProperty property) : this(manager,property,property.name)
         {
         }
         
@@ -429,6 +431,7 @@ namespace TinyDataTable.Editor
                 names.propNames,
                 names.idNames, 
                 DataTablePropertyUtil.ReservWords,
+                Manager?.Assemblies,
                 (type, name, isArray,description) => 
                 {
                     if (string.IsNullOrEmpty(name) is false)

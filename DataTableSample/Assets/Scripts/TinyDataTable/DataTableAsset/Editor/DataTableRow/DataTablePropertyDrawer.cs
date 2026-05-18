@@ -15,7 +15,7 @@ namespace TinyDataTable.Editor
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             var root = new VisualElement();
-            var dataTable = new DataTableGridField(property);
+            var dataTable = new DataTableGridField(null,property);
             dataTable.style.flexGrow = 1.0f;
             
             root.Add( dataTable );

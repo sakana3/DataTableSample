@@ -17,6 +17,7 @@ namespace TinyDataTable.Editor
             this.Manager = manager;
             this.IsStructureMode = isStructureMode;
             this.asset = asset;
+            viewDataKey = $"DataTableManagerTableView_{asset.name}";
             CreateGUI();
         }
 
@@ -25,7 +26,8 @@ namespace TinyDataTable.Editor
             var property = new SerializedObject(asset)
                 .FindProperty("dataSheet");
             
-            var sheet = new DataSheetField(property,IsStructureMode);            
+            var sheet = new DataSheetField(Manager,property,IsStructureMode);            
+
             Add( sheet);            
         }
     }

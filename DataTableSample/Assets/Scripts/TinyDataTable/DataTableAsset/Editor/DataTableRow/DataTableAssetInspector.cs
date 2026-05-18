@@ -136,7 +136,7 @@ namespace TinyDataTable.Editor
             if (dataProp != null)
             {
                 // カスタムグリッドフィールドを表示
-                var gridField = new DataTableGridField(dataProp,"record");
+                var gridField = new DataTableGridField(null,dataProp,"record");
                 gridField.style.flexGrow = 1;
                 gridField.style.marginTop = 10;
                 root.Add(gridField);

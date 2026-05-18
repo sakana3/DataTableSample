@@ -182,6 +182,7 @@ namespace TinyDataTable.Editor
                 names.fieldNames,
                 names.recordNames, 
                 DataTablePropertyUtil.ReservWords,
+                Manager?.Assemblies,
                 (type, fieldName, isArray,description) =>
                 {
                     if (string.IsNullOrEmpty(fieldName) is false)

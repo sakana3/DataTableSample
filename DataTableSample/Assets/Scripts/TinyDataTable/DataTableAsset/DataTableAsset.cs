@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEngine;
 
 namespace TinyDataTable
@@ -9,15 +10,24 @@ namespace TinyDataTable
         [SerializeField]
         private string classType;
 
-        public string ClassType
+        public Type ClassType
         {
-            get => classType;
-            set => classType = value;
+            get => string.IsNullOrEmpty(classType) ? null : Type.GetType( classType);
+            set => classType = value.FullName;
         }
         
 #if UNITY_EDITOR        
         [SerializeField]
         public UnityEditor.MonoScript classScript;
+        
+        [SerializeField,]
+        private bool obsolete;
+        public bool Obsolete
+        {
+            get { return obsolete; }
+            set { obsolete = value; }
+        }
+
 #endif
         //Tags
         [SerializeField] private string[] tags = Array.Empty<string>();
@@ -62,6 +72,24 @@ namespace TinyDataTable
         {
             dataSheet = new DataSheet();
             dataSheet.Initialize();
+        }
+
+        private void OnEnable()
+        {
+            if (ClassType != null)
+            {
+                MethodInfo method = ClassType.GetMethod("BindAsset", BindingFlags.NonPublic | BindingFlags.Static);
+                method?.Invoke(null, new object[] { this });
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (ClassType != null)
+            {
+                MethodInfo method = ClassType.GetMethod("BindAsset", BindingFlags.NonPublic | BindingFlags.Static);
+                method?.Invoke(null, new object[] { null });
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -36,7 +37,8 @@ namespace TinyDataTable.Editor
                 Manager.Tree.FromTree(tree);
                 EditorUtility.SetDirty(Manager);
             };
-            treeView.OnSelectDataTableAsset = asset => OnSelectDataTableAsset.Invoke(asset);
+            treeView.OnSelectItem = asset => OnSelectDataTableAsset?.Invoke(asset);
+            treeView.OnRemoveItem = RemoveDataTableAsset;
             treeView.style.flexGrow = 1;
             treeView.Bind(so);
             treeView.TrackSerializedObjectValue(so, a => treeView.BuildTree(Manager.Tree) );
@@ -109,6 +111,27 @@ namespace TinyDataTable.Editor
             };
             
             Add(treeView);
+
+            if (IsStructureMode)
+            {
+                var button = new Button();
+                button.text = "Add Table";
+                button.RegisterCallback<ClickEvent>(evt =>
+                {
+                    var popup = new DataTableCreateTablePopup(Manager.DefaultNamespace)
+                    {
+                        clickCreateButton = className =>
+                        {
+                            var tableAsset = CreateDataTableAsset(className);
+                            treeView.InsertNewTree(-1,className,tableAsset);
+                        }
+                    };
+                    // 1. ボタンの左上を (0, 0) とした相対座標
+                    Vector2 localPos = evt.position;
+                    UnityEditor.PopupWindow.Show( new Rect( localPos , new Vector2() ), popup);
+                });
+                Add(button);
+            }
         }
 
         DataTableAsset CreateDataTableAsset(string name)
@@ -137,6 +160,27 @@ namespace TinyDataTable.Editor
                 Manager.ScriptsPath);
             
             return dataTableAsset;
-        }        
+        }
+
+        void RemoveDataTableAsset( IEnumerable<DataTableAsset> assets)
+        {
+            if (assets == null) return;
+
+            foreach (var asset in assets)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(asset);
+                if (!string.IsNullOrEmpty(assetPath))
+                {
+                    var classScript = asset.classScript;
+                    AssetDatabase.DeleteAsset(assetPath);
+                    if (asset.classScript != null)
+                    {
+                        string scriptPath = AssetDatabase.GetAssetPath(classScript);
+                        AssetDatabase.DeleteAsset(scriptPath);
+                    }
+                }
+            }
+            AssetDatabase.SaveAssets();
+        }
     }
 }

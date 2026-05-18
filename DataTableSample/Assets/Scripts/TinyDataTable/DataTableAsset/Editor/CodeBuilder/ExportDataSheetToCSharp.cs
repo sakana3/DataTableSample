@@ -28,10 +28,11 @@ namespace TinyDataTable.Editor
             cb.AddCode($"using RecordType = TinyDataTable.{data.record.GetTypeString()}");
             
             cb.AppendLine();
-
+            
             using (cb.BeginNamespace(namespaceName))
             {
-                cb.AddAttribute("Serializable");
+                cb.AddAttribute(asset.Obsolete ? "Serializable,Obsolete" : "Serializable");
+
                 using (cb.BeginStruct(className,
                            inherit: $"IIdentifier, IEquatable<{className}>, IEquatable<{className}.Enum>",
                            isPartial: true))
@@ -43,7 +44,7 @@ namespace TinyDataTable.Editor
                             .Select(row => row.Header)
                             .Select((h, i) => ($"[EnumOrder({i})] {h.name}", $"0x{h.id:X8}", h.description,
                                 h.obsolete ? "Obsolete" : ""))
-                            .ToArray();
+                            .ToList();
                         cb.AddEnums(enums);
                     }
 
@@ -130,7 +131,8 @@ namespace TinyDataTable.Editor
                         {
                         }
                     }
-
+                    cb.AppendLine();
+                    
                     cb.AddComment("Terminate");
                     using (cb.BeginMethod("void", "Terminate", "", "public static"))
                     {
@@ -139,7 +141,16 @@ namespace TinyDataTable.Editor
                             cb.AddCode("_dataTable = null");
                         }
                     }
+                    cb.AppendLine();
 
+                    cb.AddComment("Data Bind(Call for DataTableAsset.OnEnable by reflrection)");
+                    using (cb.BeginMethod("void", "BindAsset", "DataTableAsset tableAsset", "private static"))
+                    {
+                        cb.AddCode("_dataTable = tableAsset");
+                    }
+                    cb.AppendLine();
+                    
+                    
                     //Index
                     cb.AddComment("Index of this ID");
                     using (cb.BeginBlock("public int Index"))

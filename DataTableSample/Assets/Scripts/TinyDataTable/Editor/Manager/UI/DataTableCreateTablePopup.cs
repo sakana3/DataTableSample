@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.UI;
@@ -11,9 +12,11 @@ namespace TinyDataTable.Editor
     public class DataTableCreateTablePopup : PopupWindowContent
     {
         //Set the window size
-        public override Vector2 GetWindowSize() => new Vector2(256, 48);
+        public override Vector2 GetWindowSize() => new Vector2(256, 80);
 
         private TextField textField;
+        private HelpBox infoBox;
+
         private Button confirmButton;
         private string namespaceName;
 
@@ -35,14 +38,23 @@ namespace TinyDataTable.Editor
             textField.schedule.Execute(() => 
             {
                 textField.Focus();
-            }).StartingIn(50); // 50ms後くらい            
+            }).StartingIn(50); // 50ms後くらい         
+            textField.RegisterCallback<NavigationSubmitEvent>(evt =>
+            {
+                if (confirmButton.enabledSelf)
+                {
+                    confirmButton.Focus();
+                }
+            });            
             root.Add( textField);
 
+            infoBox = new HelpBox("Input table name.", HelpBoxMessageType.Warning);
+            root.Add( infoBox);
+            
             confirmButton = new Button()
             {
                 text = "Create",
             };
-            confirmButton.tooltip = "Input table name.";          
             confirmButton.clicked += () =>
             {
                 clickCreateButton?.Invoke(textField.value);
@@ -64,23 +76,38 @@ namespace TinyDataTable.Editor
             
             if (string.IsNullOrEmpty(className))
             {
-                confirmButton.tooltip = "Input table name.";
-                confirmButton.SetEnabled( false);                
+                confirmButton.SetEnabled( false);           
+                infoBox.text = "Input table name.";
+                infoBox.style.display = DisplayStyle.Flex;
+                infoBox.messageType = HelpBoxMessageType.Warning;
             }
             else if (UIToolkitEditorUtility.CheckCanUseFieldName(className) is false )
             {
-                confirmButton.tooltip = "Invalid table name.";
+                infoBox.text = "Invalid table name.";
                 confirmButton.SetEnabled( false);
+                infoBox.style.display = DisplayStyle.Flex;
+                infoBox.messageType = HelpBoxMessageType.Error;
             }
             else if (UIToolkitEditorUtility.CheckExistClass( namespaceName,className) )
             {
-                confirmButton.tooltip = "This name is already used.";
+                infoBox.text = "This name is already used.";
                 confirmButton.SetEnabled( false);              
+                infoBox.style.display = DisplayStyle.Flex;
+                infoBox.messageType = HelpBoxMessageType.Error;
+            }
+            else if( Regex.IsMatch(className, @"[^\u0000-\u007F]") )
+            {
+                infoBox.text = "The name can only use half-width characters.";
+                confirmButton.SetEnabled( false);
+                infoBox.style.display = DisplayStyle.Flex;
+                infoBox.messageType = HelpBoxMessageType.Error;
             }
             else
             {
-                confirmButton.tooltip = "Create new table.";                
+                infoBox.text = "Press button to confirm.";                
+                infoBox.messageType = HelpBoxMessageType.Info;                
                 confirmButton.SetEnabled( true);
+                infoBox.style.display = DisplayStyle.Flex;
             }
         }
 

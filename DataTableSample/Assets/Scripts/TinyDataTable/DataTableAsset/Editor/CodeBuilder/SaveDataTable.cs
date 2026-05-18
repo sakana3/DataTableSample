@@ -16,20 +16,22 @@ namespace TinyDataTable.Editor
         private const string KeyIsGenerating = "TinyDataTable_IsGenerating";
         private const string CompilError = "TinyDataTable_CompilError";
         private const string ScriptFilePath = "TinyDataTableScript_FilePath";        
-        private const string AssetFilePath = "TinyDataTableAsset_FilePath";        
+        private const string AssetFilePath = "TinyDataTableAsset_FilePath";
 
-        public static bool SaveScript(
+
+
+        private static (string scriptName, string namespaceName, string assetpath,string fullPath, string address ) MakeInfo(
             DataTableAsset dataTableAsset ,
             string newClassName ,
             string newNamespace,
-            string scriptOutputPath )
+            string scriptOutputPath )            
         {
             var scriptName = String.Empty;
             var fullPath = String.Empty;
             var namespaceName = string.Empty;
             string assetpath = null;
             string address = null;
-            
+
             var resourcePath = GetResourcePath(dataTableAsset);
             if (resourcePath != null)
             {
@@ -39,12 +41,12 @@ namespace TinyDataTable.Editor
             else
             {
                 address = GetAddressFromObject(dataTableAsset);
-            }            
-
+            }
+            
             if (string.IsNullOrEmpty(assetpath) && string.IsNullOrEmpty(address))
             {
-                return false;
-            }            
+                return (null,null,null,null,null);
+            }              
             
             //未インポートだった場合、新規名をつける
             if (dataTableAsset.classScript != null)
@@ -61,32 +63,101 @@ namespace TinyDataTable.Editor
                 fullPath = Path.Combine(scriptOutputPath, fileName);
                 scriptName = newClassName;
                 namespaceName = newNamespace;
+            }            
+            
+            return (scriptName, namespaceName, assetpath,fullPath, address);
+        }
+        
+        /// <summary>
+        /// スクリプトが変更されているか確認する
+        /// スクリプトの再生成と比較をするので結構重い
+        /// </summary>
+        public static bool CheckScriptModified(
+            DataTableAsset dataTableAsset,
+            string newClassName,
+            string newNamespace,
+            string scriptOutputPath)
+        {
+            if (dataTableAsset.classScript == null)
+            {
+                Debug.Log(1);
+                return false;
             }
+            
+            
+            var info = MakeInfo(
+                dataTableAsset, newClassName, newNamespace, scriptOutputPath);
 
-/*
-            var text = TinyDataTable.Editor.ExportDataTableToCSharp.Export(
+            if (File.Exists(info.fullPath) is false)
+            {
+                return true;
+            }
+            
+            var code = TinyDataTable.Editor.ExportDataSheetToCSharp.Export(
                 dataTableAsset,
-                scriptName,
-                namespaceName,
-                assetpath,
-                address
-                );
-*/            
-            var text = TinyDataTable.Editor.ExportDataSheetToCSharp.Export(
+                info.scriptName,
+                info.namespaceName,
+                info.assetpath,
+                info.address
+            );
+
+            using (StreamReader reader = new StreamReader(info.fullPath, System.Text.Encoding.UTF8))
+            {
+                const int bufferSize = 4096; // 4KBの文字バッファ
+                char[] buffer = new char[bufferSize];
+                int textIndex = 0;
+                int charsRead;
+
+                while ((charsRead = reader.Read(buffer, 0, bufferSize)) > 0)
+                {
+                    if (textIndex + charsRead > code.Length)
+                        return true;
+
+                    ReadOnlySpan<char> fileSpan = buffer.AsSpan(0, charsRead);
+                    ReadOnlySpan<char> textSpan = code.AsSpan(textIndex, charsRead);
+
+                    if (!fileSpan.SequenceEqual(textSpan))
+                    {
+                        return true;
+                    }
+
+                    textIndex += charsRead;
+                }
+
+                return textIndex != code.Length;
+            }
+        }        
+        
+        public static bool SaveScript(
+            DataTableAsset dataTableAsset ,
+            string newClassName ,
+            string newNamespace,
+            string scriptOutputPath )
+        {
+            var info = MakeInfo(
+                dataTableAsset, newClassName, newNamespace, scriptOutputPath);
+     
+
+            if (string.IsNullOrEmpty(info.assetpath) && string.IsNullOrEmpty(info.address))
+            {
+                return false;
+            }            
+       
+            var code = TinyDataTable.Editor.ExportDataSheetToCSharp.Export(
                 dataTableAsset,
-                scriptName,
-                namespaceName,
-                assetpath,
-                address
+                info.scriptName,
+                info.namespaceName,
+                info.assetpath,
+                info.address
             );            
 
-            SaveScript(fullPath, text);
+            SaveScript(info.fullPath, code);
 
             // アセットデータベースを更新してUnityに認識させる
             AssetDatabase.Refresh();
             // セッションにデータを保存
             SessionState.SetBool(KeyIsGenerating, true);
-            SessionState.SetString(ScriptFilePath, fullPath);
+            SessionState.SetString(ScriptFilePath, info.fullPath);
             SessionState.SetString(AssetFilePath, AssetDatabase.GetAssetPath(dataTableAsset));
             //コンパイラーが走ってないなら直接呼び出す
             if (EditorApplication.isCompiling is false)
@@ -128,7 +199,7 @@ namespace TinyDataTable.Editor
             if (script != null && asset != null)
             {
                 asset.classScript = script;
-                asset.ClassType = script.GetClass().FullName;
+                asset.ClassType = script.GetClass();
                 var serializedObject =  new SerializedObject(asset);
                 
                 EditorUtility.SetDirty(asset);

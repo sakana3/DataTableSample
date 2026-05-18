@@ -16,13 +16,13 @@ namespace TinyDataTable.Editor
         {
             Edit ,
             Structure ,
-            Preferences,
+            Preference,
             Addressable,
         }
 
         private string[] ModeStr = new[]
         {
-            "Edit Mode","Structure Mode","Preferences","Addressable"
+            "Edit Mode","Structure Mode","Preference","Addressable"
         };
         
         public static Texture ItemIcon = EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon").image;
@@ -44,6 +44,7 @@ namespace TinyDataTable.Editor
         private TwoPaneSplitView splitView;
         private VisualElement treeViewRoot;
         private VisualElement tableViewRoot;
+        private VisualElement Root;
 
         private Toolbar toolbar;
         private DataTableManagerTreeView treeView;
@@ -62,7 +63,7 @@ namespace TinyDataTable.Editor
                 tooltip = "Change Mode",
             };
             modeMenu.style.width = 120;
-            modeMenu.menu.AppendAction("Edit Mode",
+            modeMenu.menu.AppendAction(ModeStr[0],
                 action =>
                 {
                     modeMenu.text = action.name;
@@ -71,7 +72,7 @@ namespace TinyDataTable.Editor
                 },
                 a => mode == Mode.Edit ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal
             );            
-            modeMenu.menu.AppendAction("Structure Mode",
+            modeMenu.menu.AppendAction(ModeStr[1],
                 action =>
                 {
                     modeMenu.text = action.name;
@@ -81,35 +82,56 @@ namespace TinyDataTable.Editor
                 a => mode == Mode.Structure ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal
             );
             toolbar.Add(modeMenu);
+            modeMenu.menu.AppendAction(ModeStr[2],
+                action =>
+                {
+                    modeMenu.text = action.name;
+                    mode = Mode.Preference;
+                    CreateTreeView();
+                },
+                a => mode == Mode.Preference ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal
+            );
+            toolbar.Add(modeMenu);
 
             this.style.flexGrow = 1;
-            splitView = new TwoPaneSplitView(
-                fixedPaneIndex: 0,
-                fixedPaneStartDimension: 200,
-                TwoPaneSplitViewOrientation.Horizontal
-            );
-            splitView.style.flexGrow = 1;
-            this.Add(splitView);
-            treeViewRoot = new VisualElement();
-            tableViewRoot = new VisualElement();
 
-            splitView.Add(treeViewRoot);
-            splitView.Add(tableViewRoot);
-
+            Root = new VisualElement();
+            Root.style.flexGrow = 1;
+            Add(Root);
+            
             CreateTreeView();
-
         }
 
         
         private void CreateTreeView()
         {
-            treeViewRoot.Clear();
-            treeView = new DataTableManagerTreeView(manager, isStructureMode)
+            Root.Clear();
+            if (mode == Mode.Preference)
             {
-                OnSelectDataTableAsset = OnSelectDataTableAsset,
-            };
-            treeView.style.flexGrow = 1;
-            treeViewRoot.Add(treeView);            
+                var preference = new DataTableManagerPreference(manager);
+                Root.Add(preference);
+            }
+            else
+            {
+                splitView = new TwoPaneSplitView(
+                    fixedPaneIndex: 0,
+                    fixedPaneStartDimension: 200,
+                    TwoPaneSplitViewOrientation.Horizontal
+                );
+                splitView.style.flexGrow = 1;
+                Root.Add(splitView);
+                treeViewRoot = new VisualElement();
+                tableViewRoot = new VisualElement();
+
+                splitView.Add(treeViewRoot);
+                splitView.Add(tableViewRoot);
+                treeView = new DataTableManagerTreeView(manager, isStructureMode)
+                {
+                    OnSelectDataTableAsset = OnSelectDataTableAsset,
+                };
+                treeView.style.flexGrow = 1;
+                treeViewRoot.Add(treeView);
+            }
         }
         
         private void OnSelectDataTableAsset(DataTableAsset asset)

@@ -27,11 +27,32 @@ namespace TinyDataTable.Editor
                 if (string.IsNullOrEmpty(preferredLabel))
                 {
                     Rect rect = EditorGUILayout.GetControlRect();
-                    guiContext.text = prop.GetEnumName<T>();                    
+                    bool isObsolete = false;
+                    string enumName = string.Empty;
+                    try
+                    {
+                        enumName =  prop.GetEnumName<T>();
+                    }
+                    catch (Exception )
+                    {
+                        enumName = "Out of range";
+                        isObsolete = true;
+                    }
+                    FieldInfo field = typeof(T).GetField(enumName);
+
+                    if (field != null)
+                    {
+                        isObsolete = field.GetCustomAttribute<ObsoleteAttribute>() is not null;
+                    }
+                    guiContext.text = isObsolete ? $"{enumName}(Obsolete)" :enumName;       
+                    Color originalColor = GUI.backgroundColor;
+                    GUI.backgroundColor = isObsolete?Color.red:originalColor;
                     if (EditorGUI.DropdownButton(rect,guiContext, FocusType.Keyboard))
                     {
                         PopupEnumList(rect, prop, property.displayName);
                     }
+
+                    GUI.backgroundColor = originalColor;
                 }
                 else
                 {
@@ -217,13 +238,14 @@ namespace TinyDataTable.Editor
                 
                 foreach (var (item,index) in _items.Select((t,i)=>(t,i)))
                 {
-                    var name = (item.attr.obsoletes.Any() ) ? $"{item.info.name}(Obsolete)" : item.info.name;
+                    bool isObsolete = item.attr.obsoletes.Any();
+                    var name = isObsolete ? $"{item.info.name}(Obsolete)" : item.info.name;
                     var dropdownItem = new EnumAdvancedDropdownItem(name)
                     {
                         index = item.info.index,
                         name = name,
                         icon = (_index != item.info.index) ? null : EditorGUIUtility.IconContent("d_FilterSelectedOnly").image as Texture2D,
-                        enabled = item.attr.obsoletes.Any() is false,
+                        enabled = isObsolete is false,
                     };
 
                     root.AddChild(dropdownItem);

@@ -21,8 +21,9 @@ namespace TinyDataTable.Editor
         public bool IsArray { set; get; } = false;
 
         private UnityEngine.UIElements.TextField _textField;
-        private Label _notifyLabel;
+        private HelpBox _notifyLabel;
         private Button _decideButton;
+        private string[] _assemblys;
         public List<string> propNames  {set; get; } = new List<string>();
         public List<string> idNames {set; get; }= new List<string>();
         public List<string> reservNames {set; get; }= new List<string>();
@@ -49,8 +50,9 @@ namespace TinyDataTable.Editor
 
 
         
-        public DataTableAddPropertyPopup(Action<Type, string, bool,string> onAdd)
+        public DataTableAddPropertyPopup(string[] assemblys,Action<Type, string, bool,string> onAdd)
         {
+            _assemblys = assemblys;
             _onAdd = onAdd;
         }
 
@@ -78,7 +80,7 @@ namespace TinyDataTable.Editor
             textField.textEdition.placeholder = "Input field name...";　
             root.Add( textField );
 
-            _notifyLabel = new Label("Notify");
+            _notifyLabel = new HelpBox( "Input field name.", HelpBoxMessageType.Warning);
             var element = UIToolkitEditorUtility.CreateLabeledVisualElement("", _notifyLabel);
             root.Add( element.container );
             // 少し遅延させてフォーカス
@@ -127,9 +129,10 @@ namespace TinyDataTable.Editor
             List<string> propNames,
             List<string> idNames,
             List<string> reservNames,
+            string[] assermblys,
             Action<Type, string, bool,string> onAdd)
         {
-            var popup = new DataTableAddPropertyPopup(onAdd)
+            var popup = new DataTableAddPropertyPopup(assermblys,onAdd)
             {
                 propNames = propNames,
                 idNames = idNames,
@@ -151,7 +154,7 @@ namespace TinyDataTable.Editor
                     if (EditorGUI.DropdownButton(rect, new GUIContent(PropertyType.Name), FocusType.Keyboard))
                     {
                         var state = new AdvancedDropdownState();                        
-                        var dropdown = new TypeSelectorDropdown(state, types, (selectedType) => 
+                        var dropdown = new TypeSelectorDropdown(state, _assemblys, (selectedType) => 
                         {
                             PropertyType = selectedType;
                         });
@@ -172,7 +175,7 @@ namespace TinyDataTable.Editor
                 var state = new AdvancedDropdownState();
                 var types = new[] { typeof(int), typeof(string), typeof(Vector3) /* ... */ };
 
-                var dropdown = new TypeSelectorDropdown(state, types, (selectedType) => 
+                var dropdown = new TypeSelectorDropdown(state, _assemblys, (selectedType) => 
                 {
                     PropertyType = selectedType;
                     popup.buttonText.text = PropertyType.Name;
@@ -193,25 +196,32 @@ namespace TinyDataTable.Editor
         private void CheckClassName()
         {
             string text = string.Empty;
+            var messageType = HelpBoxMessageType.Info;
+            
             if (string.IsNullOrEmpty(PropertyName))
             {
-                text = "Enter field name.";
+                text = "Input field name.";
+                messageType = HelpBoxMessageType.Info;
             }
             else if (UIToolkitEditorUtility.CheckCanUseFieldName(PropertyName) is false)
             {
                 text = "Invalid field name.";
+                messageType = HelpBoxMessageType.Error;
             }
             else if (propNames.Any( t => t == PropertyName))
             {
                 text = "Name already exists.";
+                messageType = HelpBoxMessageType.Error;
             }
             else if (idNames.Any( t => t == PropertyName))
             {
                 text = "Name already exists.";
+                messageType = HelpBoxMessageType.Error;
             }
             else if (reservNames.Any( t => t == PropertyName))
             {
                 text = "Reserved word.";
+                messageType = HelpBoxMessageType.Error;
             }
 
             if ( string.IsNullOrEmpty(text) is false)
@@ -221,7 +231,7 @@ namespace TinyDataTable.Editor
                 _decideButton.SetEnabled(false);
                 _notifyLabel.style.display = DisplayStyle.Flex;
                 _notifyLabel.style.fontSize = 10.0f;
-                _notifyLabel.style.color = Color.yellow;
+                _notifyLabel.messageType = messageType;
                 _notifyLabel.text = text;
             }
             else

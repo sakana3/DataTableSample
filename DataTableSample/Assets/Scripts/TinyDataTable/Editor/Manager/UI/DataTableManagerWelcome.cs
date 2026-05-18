@@ -94,9 +94,7 @@ namespace TinyDataTable.Editor
         {
             var dataTableManager = ScriptableObject.CreateInstance<DataTableManager>();
             var rootPath = textInput1.value;
-            dataTableManager.dataType = dataType;
-            dataTableManager.RootPath = rootPath;
-            dataTableManager.DefaultNamespace = textInput2.value;
+            dataTableManager.Initialize(dataType,rootPath,textInput2.value);
 
              MakeDirectory(rootPath, "Editor");
 //            MakeDirectory(rootPath, "Tables");

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor;
 using UnityEditor.UIElements;
+using System.Runtime.CompilerServices;
 
 namespace TinyDataTable.Editor
 {
@@ -113,6 +114,12 @@ namespace TinyDataTable.Editor
         {
             if (type == null) return false;
 
+            //コンパイラが自動生成したものは除外
+            if (type.IsDefined(typeof(CompilerGeneratedAttribute), false))
+            {
+                return false;
+            }
+            
             // 1. プリミティブ型と文字列
             if (type.IsPrimitive || type == typeof(string)) return true;
 

@@ -16,7 +16,8 @@ namespace TinyDataTable.Editor
 
         public Func<int,SerializableTree<ITEM>.Node,bool,bool, VisualElement> makeItem;
         public Action<Rect, Action<string,ITEM>> onCreateItem;
-        public Action<ITEM> OnSelectDataTableAsset;
+        public Action<ITEM> OnSelectItem;
+        public Action<IEnumerable<ITEM>> OnRemoveItem;
         private HelpBox infoBox;
         private bool _isStructureMode;
         
@@ -35,14 +36,17 @@ namespace TinyDataTable.Editor
             serchField.style.width = new StyleLength( StyleKeyword.Auto );
             serchField.RegisterValueChangedCallback( OnSearchBarValueChangedCallback );
             this.Add(serchField);
-            
 
-            if (target.Nodes == null || target.Nodes.Length == 0)
+
+            if (_isStructureMode is false)
             {
-                infoBox = new HelpBox("このエリアを右クリックすることで生成メニューが出ます。", HelpBoxMessageType.Info);
-                Add(infoBox);
+                if (target.Nodes == null || target.Nodes.Length == 0)
+                {
+                    infoBox = new HelpBox("Please switch to structure mode and add a table.", HelpBoxMessageType.Info);
+                    Add(infoBox);
+                }
             }
-            
+
             treeView = new TreeView()
             {
                 selectionType = SelectionType.Single,
@@ -79,7 +83,7 @@ namespace TinyDataTable.Editor
                         {
                             e.menu.AppendAction("Create Folder", (p) => InsertNewTree(i, "New Folder"));
                             e.menu.AppendAction("Create Table", (p) => CreateItem(p.eventInfo.mousePosition, i));
-                            e.menu.AppendAction("Delete", (p) => RemoveTree(i));
+                            e.menu.AppendAction("Remove", (p) => RemoveTree(i));
                         }
                     ) { target = element };
                 }
@@ -103,21 +107,21 @@ namespace TinyDataTable.Editor
                 {
                     var index = indexs.FirstOrDefault();
                     var node = treeView.GetItemDataForIndex<SerializableTree<ITEM>.TreeNode>(index);
-                    OnSelectDataTableAsset?.Invoke(node.node.Item);
+                    OnSelectItem?.Invoke(node.node.Item);
                 }
                 else
                 {
-                    OnSelectDataTableAsset?.Invoke(null);
+                    OnSelectItem?.Invoke(null);
                 }
             };
             
             treeView.viewDataKey = $"SerializableTreeView<{nameof(ITEM)}>";
             Add(treeView);
-
-            
             
             BuildTree(target.ToTree());
         }
+
+
 
         public void BuildTree(SerializableTree<ITEM> item)
         {
@@ -154,13 +158,13 @@ namespace TinyDataTable.Editor
         }
 
         
-        private void CreateItem( Vector2 positon, int rootID )
+        public void CreateItem( Vector2 positon, int rootID )
         {
             var mouseRect = new Rect(positon, Vector2.one);
             onCreateItem?.Invoke( mouseRect , (className,item) => InsertNewTree(rootID, className,item) );
         }
         
-        private void InsertNewTree(int rootID, string name,ITEM nodeItem = null)
+        public void InsertNewTree(int rootID, string name,ITEM nodeItem = null)
         {
             if(infoBox != null)
             {
@@ -205,11 +209,41 @@ namespace TinyDataTable.Editor
             OnHerarchyChanged();
         }
 
-        private void RemoveTree(int rootID)
+        public void RemoveTree(int id)
         {
-            if (treeView.TryRemoveItem(rootID, true))
+            var targetIds = new List<int> { id };
+            targetIds.AddRange(GetAllDescendantIds(id));
+
+            var itemsToRemove = targetIds
+                .Select(targetId => treeView.viewController.GetItemForId(targetId) as SerializableTree<ITEM>.TreeNode)
+                .Where(node => node?.node.Item != null)
+                .Select(node => node.node.Item)
+                .ToList();
+
+            if (treeView.TryRemoveItem(id, true))
             {
                 OnHerarchyChanged();
+                
+                OnRemoveItem?.Invoke(itemsToRemove);
+            }
+        }
+
+        /// <summary>
+        /// 特定のツリーID以下のすべてのツリーIDを再帰的に列挙します
+        /// </summary>
+        public IEnumerable<int> GetAllDescendantIds(int rootId)
+        {
+            var childrenIds = treeView.viewController.GetChildrenIds(rootId);
+            if (childrenIds != null)
+            {
+                foreach (var childId in childrenIds)
+                {
+                    yield return childId;
+                    foreach (var descendantId in GetAllDescendantIds(childId))
+                    {
+                        yield return descendantId;
+                    }
+                }
             }
         }
 

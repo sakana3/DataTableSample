@@ -14,18 +14,29 @@ namespace TinyDataTable.Editor
         
         private static Texture2D BuildIcon = EditorGUIUtility.IconContent("KnobCShape").image as Texture2D;
 
+        private Button exportButton;
+
+        private bool isDirty = false;
+        
         public DataTableManagerTableOperator(DataTableManager manager, DataTableAsset asset)
         {
             this.manager = manager;
             this.asset = asset;
-            CreateGUI();
+            
+            isDirty = manager.CheckDirty(asset);            
+            
+            var so = new SerializedObject(asset);
+            CreateGUI(so);
+
+            this.TrackSerializedObjectValue(so, (s) =>
+            {
+                isDirty = manager.CheckDirty(asset);
+                exportButton.style.backgroundColor =isDirty ? new StyleColor(Color.cornflowerBlue) : StyleKeyword.Null;
+            });
         }
 
-        private void CreateGUI()
+        private void CreateGUI(SerializedObject so)
         {
-            var so = new SerializedObject(asset);
-
-            
             var assetField = new ObjectField();
             assetField.objectType = typeof(DataTableAsset);
             assetField.value = asset;
@@ -42,14 +53,17 @@ namespace TinyDataTable.Editor
             MakeMargine(propGroup);            
             Add(propGroup);
             
+            var root = new VisualElement();
+            root.style.flexGrow = 1;
+            root.Bind(so);
+            propGroup.Add(root);                
+
+            var obsoleteField = new PropertyField(so.FindProperty("obsolete"));
+            root.Add(obsoleteField);
+            
             var scriptProp = so.FindProperty("classScript");
             if (scriptProp.objectReferenceValue != null)
             {
-                var root = new VisualElement();
-                root.style.flexGrow = 1;
-                root.Bind(so);
-                propGroup.Add(root);                
-  
                 var typeNameField = new PropertyField(so.FindProperty("classType"));
                 typeNameField.SetEnabled(false);
                 root.Add(typeNameField);            
@@ -59,9 +73,9 @@ namespace TinyDataTable.Editor
                 root.Add(classField);
             }
             
-            var exportButton = new Button()
+            exportButton = new Button()
             {
-                text = asset.classScript == null ? "Prepare the script" : "Reload the script",
+                text = asset.classScript == null ? "Repair" : "Rebuild",
             };
             exportButton.iconImage = Background.FromTexture2D(BuildIcon);
             exportButton.clicked += () =>
@@ -78,6 +92,9 @@ namespace TinyDataTable.Editor
                     manager.DefaultNamespace,
                     scriptDir);
             };
+
+            exportButton.style.backgroundColor = isDirty ? new StyleColor(Color.cornflowerBlue) : StyleKeyword.Null;
+            
             propGroup.Add(exportButton);
         }
 

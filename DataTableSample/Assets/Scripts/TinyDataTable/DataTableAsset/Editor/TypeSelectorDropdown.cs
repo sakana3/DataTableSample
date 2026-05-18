@@ -1,11 +1,9 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityEditor;
-using UnityEditor.Animations;
-using UnityEditor.UIElements;
 using UnityEditor.IMGUI.Controls;
 
 namespace TinyDataTable.Editor
@@ -13,7 +11,7 @@ namespace TinyDataTable.Editor
     public class TypeSelectorDropdown : AdvancedDropdown
     {
         private readonly Action<Type> _onTypeSelected;
-        private readonly IEnumerable<Type> _types;
+        private readonly IEnumerable<string> _assemblys;
 
         //Unityの代表的な型
         private static Type[] types = new[]
@@ -42,21 +40,21 @@ namespace TinyDataTable.Editor
         };
 
         private static Type[] _enumTypes = null;
+        private static Type[] _dataTableTypes = null;
         private static Type[] _classTypes = null;
-        private static Type[] _unityObjectTypes = null;
 
-        public TypeSelectorDropdown(AdvancedDropdownState state, IEnumerable<Type> types, Action<Type> onTypeSelected) :
+        public TypeSelectorDropdown(AdvancedDropdownState state, IEnumerable<string> assemblys, Action<Type> onTypeSelected) :
             base(state)
         {
            
-            _types = types;
+            _assemblys = assemblys;
             _onTypeSelected = onTypeSelected;
 
-            if (_enumTypes == null || _classTypes == null || _unityObjectTypes == null)
+            if (_enumTypes == null || _classTypes == null )
             {
-                (_enumTypes, _classTypes, _unityObjectTypes) = CollectTEmumTypes();
+                (_enumTypes, _classTypes,_dataTableTypes) = CollectTypes();
             }
-
+            
             // ウィンドウサイズの最小値を設定
             minimumSize = new Vector2(200, 300);
         }
@@ -75,31 +73,31 @@ namespace TinyDataTable.Editor
             {
                 AddTypeItem(typeRoot, type, false);
             }
-
             root.AddChild(typeRoot);
 
-            var objectRoot = new AdvancedDropdownItem("Unity Objects");
-            foreach (var type in _unityObjectTypes)
+            if (_dataTableTypes.Any())
             {
-                AddTypeItem(objectRoot, type, true);
-            }
+                var dataTableRoot = new AdvancedDropdownItem("DataTable");
+                foreach (var type in _dataTableTypes)
+                {
+                    AddTypeItem(dataTableRoot, type, false);
+                }
 
-            root.AddChild(objectRoot);
+                root.AddChild(dataTableRoot);
+            }
 
             var enumRoot = new AdvancedDropdownItem("Enum");
             foreach (var type in _enumTypes)
             {
                 AddTypeItem(enumRoot, type, true);
             }
-
             root.AddChild(enumRoot);
-
+            
             var classRoot = new AdvancedDropdownItem("Class");
             foreach (var type in _classTypes)
             {
                 AddTypeItem(classRoot, type, true);
             }
-
             root.AddChild(classRoot);
 
             return root;
@@ -115,11 +113,28 @@ namespace TinyDataTable.Editor
             var parent = root;
             if (isNest)
             {
-                if (!string.IsNullOrEmpty(type.Namespace))
+                var parts = type.FullName.Split('.');
+                foreach (var part in parts.SkipLast(1))
                 {
-                    var parts = type.Namespace.Split('.');
-                    foreach (var part in parts)
+                    var child = parent.children.FirstOrDefault(c => c.name == part);
+                    if (child == null)
                     {
+                        child = new AdvancedDropdownItem(part)
+                        {
+                            icon = EditorGUIUtility.IconContent("Folder Icon").image as Texture2D
+                        };
+                        parent.AddChild(child);
+                    }
+
+                    parent = child;
+                }
+                
+                var subparts = parts.Last().Split('+');
+                if (subparts.Length > 1)
+                {
+                    foreach (var subpart in subparts.SkipLast(1))
+                    {
+                        var part = subpart+".";
                         var child = parent.children.FirstOrDefault(c => c.name == part);
                         if (child == null)
                         {
@@ -131,11 +146,12 @@ namespace TinyDataTable.Editor
                         }
 
                         parent = child;
+
                     }
                 }
             }
 
-            var item = new TypeDropdownItem(type.Name, type);
+            var item = new TypeDropdownItem(type.Name,type.FullName, type);
             parent.AddChild(item);
         }
 
@@ -152,19 +168,20 @@ namespace TinyDataTable.Editor
         {
             public Type Type { get; }
 
-            public TypeDropdownItem(string name, Type type) : base(name)
+            public TypeDropdownItem(string name,string fullName, Type type) : base(name)
             {
                 Type = type;
                 icon = EditorGUIUtility.ObjectContent(null, type).image as Texture2D; // 型のアイコンがあれば設定
             }
         }
 
-        private (Type[] enumTypes,Type[] classTypes,Type[] unityObjectTypes)  CollectTEmumTypes()
+        private (Type[] enumTypes,Type[] classTypes,Type[] dataTableTypes)  CollectTypes()
         {
-            var allTypes  = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(t => TinyDataTableSettings.Instance.Assemblies.Contains( t.GetName().Name))
+            var allTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(t => _assemblys.Contains(t.GetName().Name))
                 .SelectMany(a => a.GetTypes())
-                .Where( t => t.IsPublic )                
+                .Where( t => t.IsPublic)
+                .SelectMany( t => GetAllNestedTypesRecursive(t) )
                 .Where(t => UIToolkitEditorUtility.CheckUnitySerializable(t))
                 .ToArray();
             
@@ -172,16 +189,87 @@ namespace TinyDataTable.Editor
                 .Where(t => t.IsEnum && t.IsSerializable)
                 .ToArray();
 
-            var classTypes = allTypes
+            var allClassTypes= allTypes
                 .Where(t => t.IsClass || t.IsValueType || t.IsPrimitive )
-                .Where(t => typeof(UnityEngine.Object).IsAssignableFrom(t) is false)
+                .ToArray();
+            
+            var classTypes = allClassTypes
+                .Where( t => !typeof(IIdentifier).IsAssignableFrom(t))
+                .ToArray();
+            
+            var dataTableTypes = allClassTypes
+                .Where( t => typeof(IIdentifier).IsAssignableFrom(t))
                 .ToArray();
 
-            var unityObjectTypes = allTypes
-                .Where(t => typeof(UnityEngine.Object).IsAssignableFrom(t))
-                .ToArray();
-
-            return (enumTypes,classTypes,unityObjectTypes);
+            return (enumTypes,classTypes,dataTableTypes);
         }
+        
+        // 再帰的にネストされた型を掘り下げるメソッド
+        static List<Type> GetAllNestedTypesRecursive(Type currentType)
+        {
+            List<Type> resultList = new List<Type>();
+            resultList.Add(currentType);
+            GetAllNestedTypesRecursive(currentType, resultList);
+            return resultList;
+        }
+
+        static void GetAllNestedTypesRecursive(Type currentType, List<Type> resultList)
+        {
+            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic;
+            Type[] nestedTypes = currentType.GetNestedTypes(flags);
+
+            foreach (Type nested in nestedTypes)
+            {
+                resultList.Add(nested);
+            
+                // このネスト型の中に、さらにネスト型がないか深く潜る
+                GetAllNestedTypesRecursive(nested, resultList);
+            }
+        }        
     }
+
+    public class AssemblieSelectorDropdown : AdvancedDropdown
+    {
+        private static Assembly[] allAssembly = System.AppDomain.CurrentDomain.GetAssemblies()
+            .ToArray();
+        // 型情報を保持するためのカスタムアイテムクラス
+        private class Item : AdvancedDropdownItem
+        {
+            public Assembly assembly { get; private set; }
+            public Item(Assembly asm) : base(asm.GetName().Name)
+            {
+                assembly = asm;
+            }
+        }
+        
+        private Action<Assembly> onTypeSelected;
+
+        public AssemblieSelectorDropdown( 
+            AdvancedDropdownState state,
+            string name,
+            Action<Assembly> onTypeSelected ) : base(state)
+        {
+            minimumSize = new Vector2(200, 300);
+            this.onTypeSelected = onTypeSelected;
+        }
+        
+        protected override void ItemSelected(AdvancedDropdownItem item)
+        {
+            if (item is Item typeItem)
+            {
+                onTypeSelected?.Invoke(typeItem.assembly);
+            }
+        }
+
+        protected override AdvancedDropdownItem BuildRoot()
+        {
+            var root = new AdvancedDropdownItem("Types");
+            foreach (var asm in allAssembly)
+            {
+                var item = new Item(asm);
+                root.AddChild(item);
+            }
+            return root;
+        }
+    }    
 }

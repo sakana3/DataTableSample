@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace TinyDataTable.Editor
 {
     public class CSharpCodeBuilder
     {
-        private StringBuilder _sb = new StringBuilder();
+        private StringBuilder _sb = new StringBuilder(4096);
         private int _indentLevel = 0;
         private const string IndentString = "    "; // 4スペース
 
@@ -59,10 +60,21 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// ブロックを終了する }
         /// </summary>
-        public CSharpCodeBuilder EndBlock(string footer = "")
+        public CSharpCodeBuilder EndBlock()
         {
             if (_indentLevel > 0) _indentLevel--;
-            AppendLine("}" + footer);
+            
+            AppendLine("}");
+            return this;
+        }
+        /// <summary>
+        /// ブロックを終了する }
+        /// </summary>
+        public CSharpCodeBuilder EndBlock(string footer )
+        {
+            if (_indentLevel > 0) _indentLevel--;
+            
+            AppendLine($"}}{footer}");
             return this;
         }
 
@@ -78,9 +90,9 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// using アトリビュートを追加
         /// </summary>
-        public CSharpCodeBuilder AddAttribute( params string[] attributres )
+        public CSharpCodeBuilder AddAttribute( string attributres )
         {
-            AppendLine($"[{string.Join("," ,attributres)}]");
+            AppendLine($"[{attributres}]");
             return this;
         }        
         
@@ -130,14 +142,20 @@ namespace TinyDataTable.Editor
         /// </summary>
         public CSharpCodeBuilder.BlockScope BeginMethod(string returnType, string methodName, string args = "", string accessModifier = "public", bool isStatic = false)
         {
-            var staticStr = isStatic ? "static " : "";
-            return BeginBlock($"{accessModifier} {staticStr}{returnType} {methodName}({args})");
+            if (isStatic)
+            {
+                return BeginBlock($"{accessModifier} static{returnType} {methodName}({args})");
+            }
+            else
+            {
+                return BeginBlock($"{accessModifier} {returnType} {methodName}({args})");
+            }
         }
 
         /// <summary>
         /// メソッド定義を開始
         /// </summary>
-        public CSharpCodeBuilder.BlockScope BeginConstructor( string methodName, string args = "", string accessModifier = "public" , string serfix = "")
+        public CSharpCodeBuilder.BlockScope BeginConstructor( string methodName, string args = "", string accessModifier = "public" , string serfix = null)
         {
             string _srtfix = string.IsNullOrEmpty(serfix) ? "" : $" : {serfix}";
             
@@ -202,7 +220,7 @@ namespace TinyDataTable.Editor
         /// <summary>
         /// Enumを追加
         /// </summary>
-        public CSharpCodeBuilder AddEnums( params (string Name , string Value , string Comment,string attribute )[] members )
+        public CSharpCodeBuilder AddEnums( IEnumerable<(string Name , string Value , string Comment,string attribute )> members )
         {
             var maxLength = members.Max( m => m.Name.Length );
             

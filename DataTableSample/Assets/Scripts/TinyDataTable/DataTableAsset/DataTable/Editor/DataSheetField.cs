@@ -26,10 +26,12 @@ namespace TinyDataTable.Editor
         private ( List<string> fieldNames, List<string> recordNames ) _names = (null,null);
         private List<int> fieldOrderList = new List<int>();
         private bool IsStructureMode;
+        private DataTableManager Manager;
         
-        public DataSheetField(SerializedProperty property,bool IsStructureMode)
+        public DataSheetField( DataTableManager manager, SerializedProperty property,bool IsStructureMode)
         {
             _property = property;
+            Manager = manager;
             this.IsStructureMode = IsStructureMode;
             
             // 拡張子 (.uss) を含めて指定します
