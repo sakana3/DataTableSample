@@ -43,11 +43,6 @@ namespace TinyDataTable.Editor
                 address = GetAddressFromObject(dataTableAsset);
             }
             
-            if (string.IsNullOrEmpty(assetpath) && string.IsNullOrEmpty(address))
-            {
-                return (null,null,null,null,null);
-            }              
-            
             //未インポートだった場合、新規名をつける
             if (dataTableAsset.classScript != null)
             {
@@ -136,12 +131,6 @@ namespace TinyDataTable.Editor
         {
             var info = MakeInfo(
                 dataTableAsset, newClassName, newNamespace, scriptOutputPath);
-     
-
-            if (string.IsNullOrEmpty(info.assetpath) && string.IsNullOrEmpty(info.address))
-            {
-                return false;
-            }            
        
             var code = TinyDataTable.Editor.ExportDataSheetToCSharp.Export(
                 dataTableAsset,

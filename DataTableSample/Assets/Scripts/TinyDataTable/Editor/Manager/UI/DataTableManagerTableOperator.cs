@@ -56,21 +56,44 @@ namespace TinyDataTable.Editor
             var root = new VisualElement();
             root.style.flexGrow = 1;
             root.Bind(so);
-            propGroup.Add(root);                
+            propGroup.Add(root);
 
-            var obsoleteField = new PropertyField(so.FindProperty("obsolete"));
-            root.Add(obsoleteField);
+            var buttonGroup = new VisualElement();
+            buttonGroup.style.flexDirection = FlexDirection.Row;
+            root.Add(buttonGroup);
             
+            var initializeOnLoadToggle = new Toggle();
+            initializeOnLoadToggle.text = "InitializeOnLoad";
+            initializeOnLoadToggle.BindProperty(so.FindProperty("InitializeOnLoad"));
+            buttonGroup.Add(initializeOnLoadToggle);
+
+            var initializeOnLoadEditorToggle = new Toggle();
+            initializeOnLoadEditorToggle.text = "InitializeOnLoadEditor";
+            initializeOnLoadEditorToggle.BindProperty(so.FindProperty("InitializeOnLoadEditor"));
+            buttonGroup.Add(initializeOnLoadEditorToggle);
+
+            var obsoleteField = new Toggle();
+            obsoleteField.text = "Obsolete";
+            obsoleteField.BindProperty(so.FindProperty("obsolete"));
+            buttonGroup.Add(obsoleteField);
+
             var scriptProp = so.FindProperty("classScript");
             if (scriptProp.objectReferenceValue != null)
             {
+                var classGroup = new VisualElement();
+                classGroup.style.flexDirection = FlexDirection.Row;
+                root.Add(classGroup);                
+                
                 var typeNameField = new PropertyField(so.FindProperty("classType"));
                 typeNameField.SetEnabled(false);
-                root.Add(typeNameField);            
+                typeNameField.style.flexGrow = 1;
+                classGroup.Add(typeNameField);            
                 
-                var classField = new PropertyField(scriptProp);
+                var classField = new ObjectField();
+                classField.BindProperty(scriptProp);
+                classField.style.flexGrow = 1;
                 classField.SetEnabled(false);
-                root.Add(classField);
+                classGroup.Add(classField);
             }
             
             exportButton = new Button()
@@ -80,8 +103,7 @@ namespace TinyDataTable.Editor
             exportButton.iconImage = Background.FromTexture2D(BuildIcon);
             exportButton.clicked += () =>
             {
-                SaveDataTable.CheckNeedEnsureAddressable(asset,true);
-
+//                SaveDataTable.CheckNeedEnsureAddressable(asset,false);
                                 
                 var scriptPath = AssetDatabase.GetAssetPath(asset.classScript);
                 var scriptDir = System.IO.Path.GetDirectoryName(scriptPath);

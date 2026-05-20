@@ -55,10 +55,14 @@ namespace TinyDataTable.Editor
                     cb.AddField("DataTableAsset", "_dataTable", "private static");
                     cb.AddField("RecordType.RecordData[]", "_recordArray", "private static");
                     
-                    var assetPathStr = "null";
-                    if (string.IsNullOrEmpty(addressName) is false) assetPathStr = $"\"{addressName}\"";
-                    if (string.IsNullOrEmpty(resourcePath) is false) assetPathStr = $"\"{resourcePath}\"";
-                    cb.AddField("string", $"_assetPath = {assetPathStr}", "private const");
+                    if (string.IsNullOrEmpty(addressName) is false)
+                    {
+                        cb.AddField("string", $"AddressableName = \"{addressName}\"", "public const");
+                    }
+                    if (string.IsNullOrEmpty(resourcePath) is false)
+                    {
+                        cb.AddField("string", $"ResourcePath = \"{resourcePath}\"", "public const");
+                    }
                     cb.AppendLine();
 
                     //メンバー
@@ -93,6 +97,7 @@ namespace TinyDataTable.Editor
 
                     cb.AppendLine();
 
+#if false                    
                     //　Prepare
                     if (string.IsNullOrEmpty(addressName) is false)
                     {
@@ -108,7 +113,6 @@ namespace TinyDataTable.Editor
                                     cb.AddCode("DataTableAsset prefab = op.WaitForCompletion()");
                                     cb.AddCode("_dataTable = prefab");
                                 }
-                                cb.AddCode("_recordArray = ((RecordType)_dataTable.DataSheet.record).recordData");
                             }
                         }
                     }
@@ -139,14 +143,16 @@ namespace TinyDataTable.Editor
                         using (cb.BeginIf("_dataTable != null"))
                         {
                             cb.AddCode("_dataTable = null");
+                            cb.AddCode("_recordArray = null");
                         }
                     }
                     cb.AppendLine();
-
+#endif
                     cb.AddComment("Data Bind(Call for DataTableAsset.OnEnable by reflrection)");
                     using (cb.BeginMethod("void", "BindAsset", "DataTableAsset tableAsset", "private static"))
                     {
                         cb.AddCode("_dataTable = tableAsset");
+                        cb.AddCode("_recordArray = _dataTable == null ? null : ((RecordType)_dataTable.DataSheet.record).recordData");
                     }
                     cb.AppendLine();
                     
@@ -291,6 +297,7 @@ namespace TinyDataTable.Editor
                     }
                     cb.AppendLine();
                     
+#if false                    
                     cb.AddComment("AssetTags");
                     using (cb.BeginBlock("private static readonly string[] _assetTags = new string[]").Footer(";"))
                     {
@@ -299,10 +306,23 @@ namespace TinyDataTable.Editor
                     }
                     cb.AddCode("public static bool HasTag(string tag) => _assetTags.Contains(tag)");
                     cb.AppendLine();
-                    
-                    //プロパティドロワー（仮）
+#endif                    
                     using (cb.BeginIfdef("UNITY_EDITOR"))
                     {
+                        if (asset.InitializeOnLoadEditor)
+                        {
+                            cb.AddAttribute("UnityEditor.InitializeOnLoadMethod");
+                            using (cb.BeginBlock("private static void InitializeOnLoadEditor()"))
+                            {
+                                using (cb.BeginBlock("UnityEditor.EditorApplication.delayCall += () =>").Footer(";"))
+                                {
+                                    var path = UnityEditor.AssetDatabase.GetAssetPath(asset);
+                                    cb.AddCode($"UnityEditor.AssetDatabase.LoadAssetAtPath<DataTableAsset>(\"{path}\");");
+                                }
+                            }
+                        }
+                        
+                        //プロパティドロワー（仮）
                         cb.AppendLine($"[UnityEditor.CustomPropertyDrawer(typeof({className}))]");
                         using (cb.BeginClass($"{className}PropertyDrawer" , "private" ,$"TinyDataTable.Editor.IDPropertyDrawerBase<{className}.Enum>" ))
                         {

@@ -28,6 +28,9 @@ namespace TinyDataTable
             set { obsolete = value; }
         }
 
+        public bool InitializeOnLoad = true;
+        public bool InitializeOnLoadEditor = true;
+        
 #endif
         //Tags
         [SerializeField] private string[] tags = Array.Empty<string>();
